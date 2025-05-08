@@ -1,6 +1,6 @@
 using SGCI_app.domain.Factory;
 
-namespace SGCI_app.infrastructure.postgres;
+namespace SGCI_app.infrastructure.mysql;
 
 public class ConexDBFactory : IDbfactory
 {

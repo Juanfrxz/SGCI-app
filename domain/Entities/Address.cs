@@ -12,6 +12,6 @@ namespace SGCI_app.domain.Entities
         public string? NumeroEdificio { get; set; }
         public string? CodigoPostal { get; set; }
         public int Ciudad_Id { get; set; }
-        public string? InfoAdicional { get; set; }
+        public string InfoAdicional { get; set; }
     }
 }
