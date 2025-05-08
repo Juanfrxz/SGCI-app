@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SGCI_app.domain.Entities
+namespace SGCI_app.domain.DTO
 {
-    public class Client
+    public class DtoCli
     {
         public int Id { get; set; }
         public DateTime? FechaNacimiento { get; set; }
