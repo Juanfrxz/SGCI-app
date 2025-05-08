@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SGCI_app.domain.Entities
+namespace SGCI_app.domain.DTO
 {
-    public class Employee
+    public class DtoEmp
     {
         public int Id { get; set; }
         public DateTime? FechaIngreso { get; set; }
