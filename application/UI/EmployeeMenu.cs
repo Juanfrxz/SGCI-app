@@ -6,15 +6,15 @@ using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class DtoClientMenu
+    public class EmployeeMenu
     {
-        private readonly ClientService _service;
+        private readonly EmployeeService _service;
 
-        public DtoClientMenu()
+        public EmployeeMenu()
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=campus2023;Pooling=true";
             var factory = new ConexDBFactory(connStr);
-            _service = new ClientService(factory.CrearClientRepository());
+            _service = new EmployeeService(factory.CrearEmployeeRepository());
         }
 
         public void ShowMenu()
@@ -22,11 +22,12 @@ namespace SGCI_app.application.UI
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE CLIENTES DTO ===");
-                Console.WriteLine("1. Crear Cliente DTO");
-                Console.WriteLine("2. Listar Clientes DTO");
-                Console.WriteLine("3. Actualizar Cliente DTO");
-                Console.WriteLine("4. Eliminar Cliente DTO");
+                Console.WriteLine("=== GESTIÓN DE EMPLEADOS ===");
+                Console.WriteLine("1. Crear Empleado");
+                Console.WriteLine("2. Listar Empleados");
+                Console.WriteLine("3. Actualizar Empleado");
+                Console.WriteLine("4. Eliminar Empleado");
+                Console.WriteLine("5. Gestión de Empleados");
                 Console.WriteLine("0. Volver al menú principal");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -42,16 +43,20 @@ namespace SGCI_app.application.UI
                 switch (input)
                 {
                     case "1":
-                        CrearDtoClient();
+                        CrearEmpleado();
                         break;
                     case "2":
-                        ListarDtoClients();
+                        ListarEmpleados();
                         break;
                     case "3":
-                        ActualizarDtoClient();
+                        ActualizarEmpleado();
                         break;
                     case "4":
-                        EliminarDtoClient();
+                        EliminarEmpleado();
+                        break;
+                    case "5":
+                        var employeeMenu = new EmployeeMenu();
+                        employeeMenu.ShowMenu();
                         break;
                     case "0":
                         return;
@@ -63,10 +68,10 @@ namespace SGCI_app.application.UI
             }
         }
 
-        private void CrearDtoClient()
+        private void CrearEmpleado()
         {
             Console.Clear();
-            Console.WriteLine("=== CREAR NUEVO CLIENTE DTO ===");
+            Console.WriteLine("=== CREAR NUEVO EMPLEADO ===");
             
             // Datos de dirección
             Console.WriteLine("\nDatos de dirección:");
@@ -117,25 +122,41 @@ namespace SGCI_app.application.UI
                 return;
             }
 
-            // Datos de cliente
-            Console.WriteLine("\nDatos de cliente:");
-            Console.Write("Fecha de nacimiento (YYYY-MM-DD): ");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime fechaNac))
+            // Datos de empleado
+            Console.WriteLine("\nDatos de empleado:");
+            Console.Write("Fecha de ingreso (YYYY-MM-DD): ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime fechaIngreso))
             {
                 Console.WriteLine("Fecha inválida.");
                 Console.ReadKey();
                 return;
             }
             
-            Console.Write("Fecha de última compra (YYYY-MM-DD): ");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime fechaUltCompra))
+            Console.Write("Salario base: ");
+            if (!double.TryParse(Console.ReadLine(), out double salarioBase))
             {
-                Console.WriteLine("Fecha inválida.");
+                Console.WriteLine("Salario inválido.");
+                Console.ReadKey();
+                return;
+            }
+            
+            Console.Write("ID de EPS: ");
+            if (!int.TryParse(Console.ReadLine(), out int epsId))
+            {
+                Console.WriteLine("ID de EPS inválido.");
+                Console.ReadKey();
+                return;
+            }
+            
+            Console.Write("ID de ARL: ");
+            if (!int.TryParse(Console.ReadLine(), out int arlId))
+            {
+                Console.WriteLine("ID de ARL inválido.");
                 Console.ReadKey();
                 return;
             }
 
-            var dtoClient = new DtoClient 
+            var empleado = new DtoEmployee 
             { 
                 Address = new DtoAddress
                 {
@@ -150,30 +171,32 @@ namespace SGCI_app.application.UI
                 Email = email,
                 TipoTercero_id = tipoTerceroId,
                 TipoDoc_id = tipoDocId,
-                Client = new DtoCli
+                Employee = new DtoEmp
                 {
-                    FechaNacimiento = fechaNac,
-                    FechaUltimaCompra = fechaUltCompra
+                    FechaIngreso = fechaIngreso,
+                    SalarioBase = salarioBase,
+                    Eps_id = epsId,
+                    Arl_id = arlId
                 }
             };
             
             try
             {
-                _service.CrearClienteDto(dtoClient);
-                Console.WriteLine("Cliente DTO creado exitosamente.");
+                _service.CrearEmpleado(empleado);
+                Console.WriteLine("Empleado creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear el cliente DTO: {ex.Message}");
+                Console.WriteLine($"Error al crear el empleado: {ex.Message}");
             }
             
             Console.ReadKey();
         }
 
-        private void ListarDtoClients()
+        private void ListarEmpleados()
         {
             Console.Clear();
-            Console.WriteLine("=== LISTA DE CLIENTES DTO ===");
+            Console.WriteLine("=== LISTA DE EMPLEADOS ===");
             
             try
             {
@@ -181,95 +204,128 @@ namespace SGCI_app.application.UI
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar los clientes DTO: {ex.Message}");
+                Console.WriteLine($"Error al listar los empleados: {ex.Message}");
             }
             
             Console.WriteLine("\nPresione cualquier tecla para continuar...");
             Console.ReadKey();
         }
 
-        private void ActualizarDtoClient()
+        private void ActualizarEmpleado()
         {
             Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR CLIENTE DTO ===");
+            Console.WriteLine("=== ACTUALIZAR EMPLEADO ===");
             
-            Console.Write("ID del cliente a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int clienteId))
+            Console.Write("ID del empleado a actualizar: ");
+            if (!int.TryParse(Console.ReadLine(), out int empleadoId))
             {
-                Console.WriteLine("ID de cliente inválido.");
+                Console.WriteLine("ID de empleado inválido.");
                 Console.ReadKey();
                 return;
             }
 
+            // Datos personales
+            Console.WriteLine("\nDatos personales:");
             Console.Write("Nuevo nombre: ");
-            string? nuevoNombre = Console.ReadLine();
+            string? nombre = Console.ReadLine();
             
             Console.Write("Nuevos apellidos: ");
-            string? nuevosApellidos = Console.ReadLine();
+            string? apellidos = Console.ReadLine();
             
             Console.Write("Nuevo email: ");
-            string? nuevoEmail = Console.ReadLine();
+            string? email = Console.ReadLine();
             
-            Console.Write("Nuevo ID de tipo de tercero: ");
-            if (!int.TryParse(Console.ReadLine(), out int nuevoTipoTerceroId))
+            Console.Write("Nuevo ID del tipo de tercero: ");
+            if (!int.TryParse(Console.ReadLine(), out int tipoTerceroId))
             {
                 Console.WriteLine("ID de tipo de tercero inválido.");
                 Console.ReadKey();
                 return;
             }
             
-            Console.Write("Nuevo ID de tipo de documento: ");
-            if (!int.TryParse(Console.ReadLine(), out int nuevoTipoDocId))
+            Console.Write("Nuevo ID del tipo de documento: ");
+            if (!int.TryParse(Console.ReadLine(), out int tipoDocId))
             {
                 Console.WriteLine("ID de tipo de documento inválido.");
                 Console.ReadKey();
                 return;
             }
 
-            var dtoClient = new DtoClient 
+            // Datos de empleado
+            Console.WriteLine("\nDatos de empleado:");
+            Console.Write("Nuevo salario base: ");
+            if (!double.TryParse(Console.ReadLine(), out double salarioBase))
+            {
+                Console.WriteLine("Salario inválido.");
+                Console.ReadKey();
+                return;
+            }
+            
+            Console.Write("Nuevo ID de EPS: ");
+            if (!int.TryParse(Console.ReadLine(), out int epsId))
+            {
+                Console.WriteLine("ID de EPS inválido.");
+                Console.ReadKey();
+                return;
+            }
+            
+            Console.Write("Nuevo ID de ARL: ");
+            if (!int.TryParse(Console.ReadLine(), out int arlId))
+            {
+                Console.WriteLine("ID de ARL inválido.");
+                Console.ReadKey();
+                return;
+            }
+
+            var empleado = new DtoEmployee 
             { 
-                Id = clienteId,
-                Nombre = nuevoNombre,
-                Apellidos = nuevosApellidos,
-                Email = nuevoEmail,
-                TipoTercero_id = nuevoTipoTerceroId,
-                TipoDoc_id = nuevoTipoDocId
+                Nombre = nombre,
+                Apellidos = apellidos,
+                Email = email,
+                TipoTercero_id = tipoTerceroId,
+                TipoDoc_id = tipoDocId,
+                Employee = new DtoEmp
+                {
+                    SalarioBase = salarioBase,
+                    Eps_id = epsId,
+                    Arl_id = arlId
+                }
             };
             
             try
             {
-                _service.ActualizarDatosPersonalesCliente(clienteId, dtoClient);
-                Console.WriteLine("Cliente DTO actualizado exitosamente.");
+                _service.ActualizarDatosEmpleado(empleadoId, empleado);
+                Console.WriteLine("Empleado actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar el cliente DTO: {ex.Message}");
+                Console.WriteLine($"Error al actualizar el empleado: {ex.Message}");
             }
             
             Console.ReadKey();
         }
 
-        private void EliminarDtoClient()
+        private void EliminarEmpleado()
         {
             Console.Clear();
-            Console.WriteLine("=== ELIMINAR CLIENTE DTO ===");
+            Console.WriteLine("=== ELIMINAR EMPLEADO ===");
             
-            Console.Write("ID del cliente a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int clienteId))
+            Console.Write("ID del empleado a eliminar: ");
+            if (!int.TryParse(Console.ReadLine(), out int empleadoId))
             {
-                Console.WriteLine("ID de cliente inválido.");
+                Console.WriteLine("ID de empleado inválido.");
                 Console.ReadKey();
                 return;
             }
             
             try
             {
-                _service.EliminarCliente(clienteId);
-                Console.WriteLine("Cliente DTO eliminado exitosamente.");
+                _service.EliminarEmpleado(empleadoId);
+                Console.WriteLine("Empleado eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar el cliente DTO: {ex.Message}");
+                Console.WriteLine($"Error al eliminar el empleado: {ex.Message}");
             }
             
             Console.ReadKey();
