@@ -8,13 +8,13 @@ namespace SGCI_app.application.UI
 {
     public class DtoClientMenu
     {
-        private readonly DtoClientService _service;
+        private readonly ClientService _service;
 
         public DtoClientMenu()
         {
-            string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=juan1374;Pooling=true";
+            string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=campus2023;Pooling=true";
             var factory = new ConexDBFactory(connStr);
-            _service = new DtoClientService(factory.CrearDtoClienteRepository());
+            _service = new ClientService(factory.CrearClientRepository());
         }
 
         public void ShowMenu()

@@ -12,7 +12,7 @@ namespace SGCI_app.application.UI
 
         public EmployeeMenu()
         {
-            string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
+            string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=campus2023;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new EmployeeService(factory.CrearEmployeeRepository());
         }
