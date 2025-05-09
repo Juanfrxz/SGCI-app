@@ -1,4 +1,5 @@
 using System;
+using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
@@ -14,6 +15,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("2. Gestión de Regiones");
                 Console.WriteLine("3. Gestión de Ciudades");
                 Console.WriteLine("4. Gestión de Clientes");
+                Console.WriteLine("5. Gestión de Empleados");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -43,6 +45,10 @@ namespace SGCI_app.application.UI
                     case "4":
                         var dtoClientMenu = new ClientMenu();
                         dtoClientMenu.ShowMenu();
+                        break;
+                    case "5":
+                        var employeeMenu = new EmployeeMenu();
+                        employeeMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");
