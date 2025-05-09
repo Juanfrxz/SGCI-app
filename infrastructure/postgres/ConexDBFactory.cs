@@ -30,4 +30,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpCityRepository(_connectionString);
     }
+    public IDtoEmployeeRepository CrearDtoEmployeeRepository()
+    {
+        return new ImpDtoEmployeeRepository(_connectionString);
+    }
 }

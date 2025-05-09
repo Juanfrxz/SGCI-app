@@ -8,6 +8,6 @@ namespace SGCI_app.domain.Ports
 {
     public interface IDtoEmployeeRepository : IGenericRepository<DtoEmployee>
     {
-        
+        void Actualizar(int id, DtoEmployee entity);
     }
 }
