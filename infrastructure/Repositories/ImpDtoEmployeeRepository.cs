@@ -74,7 +74,7 @@ namespace SGCI_app.infrastructure.Repositories
         public void Crear(DtoEmployee entity)
         {
             // Obtener la conexión
-            using var connection = _conexion.ObtenerConexion();
+            var connection = _conexion.ObtenerConexion();
 
             var sql = @"CALL public.sp_create_employee(
                         p_calle             := @p_calle,

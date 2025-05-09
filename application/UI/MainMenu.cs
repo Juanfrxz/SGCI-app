@@ -13,7 +13,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("1. Gestión de Países");
                 Console.WriteLine("2. Gestión de Regiones");
                 Console.WriteLine("3. Gestión de Ciudades");
-                Console.WriteLine("4. Gestión de Clientes DTO");
+                Console.WriteLine("4. Gestión de Clientes");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -41,7 +41,7 @@ namespace SGCI_app.application.UI
                         cityMenu.ShowMenu();
                         break;
                     case "4":
-                        var dtoClientMenu = new DtoClientMenu();
+                        var dtoClientMenu = new ClientMenu();
                         dtoClientMenu.ShowMenu();
                         break;
                     case "0":

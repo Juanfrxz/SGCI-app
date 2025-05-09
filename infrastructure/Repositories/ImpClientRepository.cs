@@ -1,4 +1,7 @@
-using System.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Npgsql;
 using SGCI_app.domain.DTO;
 using SGCI_app.domain.Ports;
@@ -6,10 +9,10 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.infrastructure.Repositories
 {
-    public class ImpDtoClientRepository : IGenericRepository<DtoClient>, IDtoClientRepository
+    public class ImpClientRepository : IGenericRepository<DtoClient>, IClientRepository
     {
         private readonly ConexionSingleton _conexion;
-        public ImpDtoClientRepository(string connectionString)
+        public ImpClientRepository(string connectionString)
         {
             _conexion = ConexionSingleton.Instancia(connectionString);
         }
