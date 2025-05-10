@@ -9,5 +9,5 @@ public interface IDbfactory
     ICityRepository CrearCityRepository();
     IClientRepository CrearClientRepository();
     IEmployeeRepository CrearEmployeeRepository();
-    
+    IProviderRepository CrearProviderRepository();
 }
