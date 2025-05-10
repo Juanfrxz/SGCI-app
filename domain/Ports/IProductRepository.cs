@@ -5,6 +5,6 @@ namespace SGCI_app.domain.Ports
 {
     public interface IProductRepository : IGenericRepository<Product>
     {
-        
+        void Eliminar(string id);
     }
 }
