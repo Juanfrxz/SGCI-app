@@ -697,5 +697,33 @@ BEGIN
     WHERE id = p_company_id;
 END;
 $$;
-```
 
+-- Procedimiento almacenado para crear una región
+CREATE OR REPLACE PROCEDURE public.sp_create_region(
+    p_nombre VARCHAR,
+    p_pais_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO region (nombre, pais_id)
+    VALUES (p_nombre, p_pais_id);
+END;
+$$;
+
+-- Procedimiento almacenado para actualizar una región
+CREATE OR REPLACE PROCEDURE public.sp_update_region(
+    p_id INTEGER,
+    p_nombre VARCHAR,
+    p_pais_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE region
+    SET nombre = p_nombre,
+        pais_id = p_pais_id
+    WHERE id = p_id;
+END;
+$$;
+```
