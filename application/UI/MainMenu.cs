@@ -17,6 +17,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("4. Gestión de Clientes");
                 Console.WriteLine("5. Gestión de Empleados");
                 Console.WriteLine("6. Gestión de Proveedores");
+                Console.WriteLine("7. Gestión de Planes Promocionales");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -54,6 +55,10 @@ namespace SGCI_app.application.UI
                     case "6":
                         var providerMenu = new ProviderMenu();
                         providerMenu.ShowMenu();
+                        break;
+                    case "7":
+                        var promotionalPlanMenu = new PromotionalPlanMenu();
+                        promotionalPlanMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");

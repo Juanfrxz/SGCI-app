@@ -10,4 +10,5 @@ public interface IDbfactory
     IClientRepository CrearClientRepository();
     IEmployeeRepository CrearEmployeeRepository();
     IProviderRepository CrearProviderRepository();
+    IPromotionalPlanRepository CrearPromoPlanRepository();
 }

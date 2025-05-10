@@ -38,4 +38,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpProviderRepository(_connectionString);
     }
+    public IPromotionalPlanRepository CrearPromoPlanRepository()
+    {
+        return new ImpPromotionalPlanRepository(_connectionString);
+    }
 }
