@@ -31,9 +31,13 @@ namespace SGCI_app.application.services
         _promotionalPlanRepository.Eliminar(id);
     }
 
-    public List<PromotionalPlan> GetAllPromotionalPlans()
+    public void GetAllPromotionalPlans()
     {
-        return _promotionalPlanRepository.ObtenerTodos();
+        var lista = _promotionalPlanRepository.ObtenerTodos();
+            foreach (var c in lista)
+            {
+                Console.WriteLine($"ID: {c.Id}, Nombre: {c.Nombre}, Descuento: {c.Descuento}%, Fecha_Inicio: {c.Inicio}, Fecha_Fin: {c.Fin}");
+            }
     }
 }
 
