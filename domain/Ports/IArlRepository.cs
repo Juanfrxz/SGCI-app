@@ -5,6 +5,6 @@ namespace SGCI_app.domain.Ports
 {
     public interface IArlRepository : IGenericRepository<ARL>
     {
-        
+        void Actualizar(int id, ARL entity);
     }
 }
