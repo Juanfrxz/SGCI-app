@@ -50,4 +50,23 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpArlRepository(_connectionString);
     }
+    public ISaleRepository CrearSaleRepository()
+    {
+        return new ImpSaleRepository(_connectionString);
+    }
+
+    public ISaleDetailRepository CrearSaleDetailRepository()
+    {
+        return new ImpSaleDetailRepository(_connectionString);
+    }
+
+    public IPurchaseRepository CrearPurchaseRepository()
+    {
+        return new ImpPurchaseRepository(_connectionString);
+    }
+
+    public IPurchaseDetailRepository CrearPurchaseDetailRepository()
+    {
+        return new ImpPurchaseDetailRepository(_connectionString);
+    }
 }

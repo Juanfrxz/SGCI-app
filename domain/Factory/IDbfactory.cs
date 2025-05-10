@@ -13,4 +13,8 @@ public interface IDbfactory
     IPromotionalPlanRepository CrearPromoPlanRepository();
     IEpsRepository CrearEpsRepository();
     IArlRepository CrearArlRepository();
+    ISaleRepository CrearSaleRepository();
+    ISaleDetailRepository CrearSaleDetailRepository();
+    IPurchaseRepository CrearPurchaseRepository();
+    IPurchaseDetailRepository CrearPurchaseDetailRepository();
 }
