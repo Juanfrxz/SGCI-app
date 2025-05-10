@@ -69,4 +69,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpPurchaseDetailRepository(_connectionString);
     }
+    public ICompanyRepository CrearCompanyRepository()
+    {
+        return new ImpCompanyRepository(_connectionString);
+    }
 }

@@ -20,6 +20,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("7. Gestión de Planes Promocionales");
                 Console.WriteLine("8. Gestión de EPS");
                 Console.WriteLine("9. Gestión de ARL");
+                Console.WriteLine("10. Gestión de Empresas");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -69,6 +70,10 @@ namespace SGCI_app.application.UI
                     case "9":
                         var arlMenu = new ArlMenu();
                         arlMenu.ShowMenu();
+                        break;
+                    case "10":
+                        var companyMenu = new CompanyMenu();
+                        companyMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");
