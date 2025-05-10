@@ -77,4 +77,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpProductRepository(_connectionString);
     }
+    public IPromotionalPlanProductRepository CrearPromoPlanProdRepository()
+    {
+        return new ImpPromotionalPlanProductRepository(_connectionString);
+    }
 }

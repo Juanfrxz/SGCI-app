@@ -19,5 +19,6 @@ public interface IDbfactory
     IPurchaseDetailRepository CrearPurchaseDetailRepository();
     ICompanyRepository CrearCompanyRepository();
     IProductRepository CrearProductRepository();
+    IPromotionalPlanProductRepository CrearPromoPlanProdRepository();
 
 }
