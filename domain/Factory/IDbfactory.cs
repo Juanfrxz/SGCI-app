@@ -12,4 +12,5 @@ public interface IDbfactory
     IProviderRepository CrearProviderRepository();
     IPromotionalPlanRepository CrearPromoPlanRepository();
     IEpsRepository CrearEpsRepository();
+    IArlRepository CrearArlRepository();
 }

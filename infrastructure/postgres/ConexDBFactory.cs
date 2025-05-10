@@ -46,4 +46,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpEpsRepository(_connectionString);
     }
+    public IArlRepository CrearArlRepository()
+    {
+        return new ImpArlRepository(_connectionString);
+    }
 }
