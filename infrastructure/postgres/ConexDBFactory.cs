@@ -42,4 +42,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpPromotionalPlanRepository(_connectionString);
     }
+    public IEpsRepository CrearEpsRepository()
+    {
+        return new ImpEpsRepository(_connectionString);
+    }
 }
