@@ -12,8 +12,30 @@ public class ConexDBFactory : IDbfactory
     {
         _connectionString = connectionString;
     }
-    public IDtoClientRepository CrearDtoClienteRepository()
+    public IRegionRepository CrearRegionRepository()
     {
-        return new ImpDtoClientRepository(_connectionString);
+        return new ImpRegionRepository(_connectionString);
+    }
+
+    public ICountryRepository CrearCountryRepository()
+    {
+        return new ImpCountryRepository(_connectionString);
+    }
+
+    public ICityRepository CrearCityRepository()
+    {
+        return new ImpCityRepository(_connectionString);
+    }
+        public IClientRepository CrearClientRepository()
+    {
+        return new ImpClientRepository(_connectionString);
+    }
+    public IEmployeeRepository CrearEmployeeRepository()
+    {
+        return new ImpEmployeeRepository(_connectionString);
+    }
+    public IProviderRepository CrearProviderRepository()
+    {
+        return new ImpProviderRepository(_connectionString);
     }
 }

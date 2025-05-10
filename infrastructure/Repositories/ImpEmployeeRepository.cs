@@ -1,4 +1,3 @@
-using System.Data;
 using Npgsql;
 using SGCI_app.domain.DTO;
 using SGCI_app.domain.Ports;
@@ -6,65 +5,74 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.infrastructure.Repositories
 {
-    public class ImpDtoClientRepository : IGenericRepository<DtoClient>, IDtoClientRepository
+    public class ImpEmployeeRepository : IGenericRepository<DtoEmployee>, IEmployeeRepository
     {
         private readonly ConexionSingleton _conexion;
-        public ImpDtoClientRepository(string connectionString)
+        public ImpEmployeeRepository(string connectionString)
         {
             _conexion = ConexionSingleton.Instancia(connectionString);
         }
-
-        public void Actualizar(int id, DtoClient entity)
+        // Implementation of the repository methods goes here
+        public void Actualizar(int id, DtoEmployee entity)
         {
-            using var connection = _conexion.ObtenerConexion();
+            // Obtenemos la conexión y la abrimos si hace falta
+            var connection = _conexion.ObtenerConexion();
+
+            // Llamada al procedimiento
             const string sql = @"
-                                UPDATE terceros t
-                                SET
-                                    nombre              = COALESCE(NULLIF(@nombre, ''), t.nombre),
-                                    apellidos           = COALESCE(NULLIF(@apellidos, ''), t.apellidos),
-                                    email               = COALESCE(NULLIF(@email, ''), t.email),
-                                    tipo_terceros_id    = COALESCE(@tipo_tercero_id::int, t.tipo_terceros_id),
-                                    tipo_documento_id   = COALESCE(@tipo_documento_id::int, t.tipo_documento_id)
-                                FROM cliente c
-                                WHERE c.id = @cliente_id
-                                AND t.id = c.tercero_id;
-                            ";
+        CALL public.sp_update_employee(
+            p_empleado_id          => @p_empleado_id,
+            p_nombre               => @p_nombre,
+            p_apellidos            => @p_apellidos,
+            p_email                => @p_email,
+            p_tipo_tercero_id      => @p_tipo_tercero_id,
+            p_tipo_documento_id    => @p_tipo_documento_id,
+            p_salario_base         => @p_salario_base,
+            p_eps_id               => @p_eps_id,
+            p_arl_id               => @p_arl_id
+        );
+    ";
 
             using var cmd = new NpgsqlCommand(sql, connection)
             {
                 CommandType = System.Data.CommandType.Text
             };
 
-            // 3) Parámetros
-            cmd.Parameters.AddWithValue("cliente_id", id);
-            cmd.Parameters.AddWithValue("nombre", entity.Nombre ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("apellidos", entity.Apellidos ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("email", entity.Email ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("tipo_tercero_id", entity.TipoTercero_id);
-            cmd.Parameters.AddWithValue("tipo_documento_id", entity.TipoDoc_id);
+            // 1) Parámetro clave: id del empleado (cliente.id)
+            cmd.Parameters.AddWithValue("p_empleado_id", id);
+
+            // 2) Datos en 'terceros'
+            cmd.Parameters.AddWithValue("p_nombre", entity.Nombre ?? (object) DBNull.Value);
+            cmd.Parameters.AddWithValue("p_apellidos", entity.Apellidos ?? (object) DBNull.Value);
+            cmd.Parameters.AddWithValue("p_email", entity.Email ?? (object) DBNull.Value);
+            cmd.Parameters.AddWithValue("p_tipo_tercero_id", entity.TipoTercero_id);
+            cmd.Parameters.AddWithValue("p_tipo_documento_id", entity.TipoDoc_id);
+
+            // 3) Datos en 'empleado' (si no tienes estas propiedades en tu DTO,
+            //    crea entity.SalarioBase, entity.EpsId y entity.ArlId como double? e int?)
+            cmd.Parameters.AddWithValue("p_salario_base", entity.Employee.SalarioBase);
+            cmd.Parameters.AddWithValue("p_eps_id", entity.Employee.Eps_id);
+            cmd.Parameters.AddWithValue("p_arl_id", entity.Employee.Arl_id);
 
             // 4) Ejecutar
             var rows = cmd.ExecuteNonQuery();
             if (rows == 0)
-            {
-                throw new InvalidOperationException($"No se encontró cliente con id = {id} para actualizar.");
-            } else {
-                Console.WriteLine("Datos personales actualizados exitosamente!!!");
-            }
+                throw new InvalidOperationException($"No se encontró empleado con id = {id} para actualizar.");
 
+            Console.WriteLine("Datos del empleado actualizados exitosamente.");
         }
 
-        public void Actualizar(DtoClient entity)
+        public void Actualizar(DtoEmployee entity)
         {
             throw new NotImplementedException();
         }
 
-        public void Crear(DtoClient entity)
+        public void Crear(DtoEmployee entity)
         {
             // Obtener la conexión
-            using var connection = _conexion.ObtenerConexion();
+            var connection = _conexion.ObtenerConexion();
 
-            var sql = @"CALL public.sp_create_client(
+            var sql = @"CALL public.sp_create_employee(
                         p_calle             := @p_calle,
                         p_numero_edificio   := @p_numero_edificio,
                         p_codigo_postal     := @p_codigo_postal,
@@ -75,8 +83,10 @@ namespace SGCI_app.infrastructure.Repositories
                         p_email             := @p_email,
                         p_tipo_tercero_id   := @p_tipo_tercero_id,
                         p_tipo_documento_id := @p_tipo_documento_id,
-                        p_fecha_nac         := @p_fecha_nac,
-                        p_fecha_ult_compra  := @p_fecha_ult_compra
+                        p_fecha_ingreso         := @p_fecha_ingreso ,
+                        p_salario_base  := @p_salario_base,
+                        p_Eps_id := @p_Eps_id,
+                        p_Arl_id := @p_Arl_id
                     );";
 
             using var cmd = new NpgsqlCommand(sql, connection)
@@ -99,8 +109,10 @@ namespace SGCI_app.infrastructure.Repositories
             cmd.Parameters.AddWithValue("p_tipo_documento_id", entity.TipoDoc_id);
 
             // Parámetros de Cliente (DtoCli)
-            cmd.Parameters.AddWithValue("p_fecha_nac", entity.Client.FechaNacimiento ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("p_fecha_ult_compra", entity.Client.FechaUltimaCompra ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("p_fecha_ingreso", entity.Employee.FechaIngreso ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("p_salario_base", entity.Employee.SalarioBase);
+            cmd.Parameters.AddWithValue("p_Eps_id", entity.Employee.Eps_id);
+            cmd.Parameters.AddWithValue("p_Arl_id", entity.Employee.Arl_id);
 
             // Ejecutar
             cmd.ExecuteNonQuery();
@@ -109,21 +121,20 @@ namespace SGCI_app.infrastructure.Repositories
         public void Eliminar(int id)
         {
             var connection = _conexion.ObtenerConexion();
-            string query = "DELETE FROM cliente WHERE id = @id;";
+            string query = "DELETE FROM empleado WHERE id = @id;";
             using var cmd = new NpgsqlCommand(query, connection);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
-
         }
 
-        public List<DtoClient> ObtenerTodos()
+        public List<DtoEmployee> ObtenerTodos()
         {
-            var clientes = new List<DtoClient>();
+            var empleados = new List<DtoEmployee>();
 
             // Aquí obtienes la conexión abierta de tu singleton…
             var connection = _conexion.ObtenerConexion();
 
-            string query = "SELECT c.id AS id, t.nombre AS nombre FROM cliente c JOIN terceros t ON c.tercero_id = t.id;";
+            string query = "SELECT e.id AS id, t.nombre AS nombre FROM empleado e JOIN terceros t ON e.tercero_id = t.id;";
 
             // Usamos using sólo en el comando y el reader, no en la conexión singleton
             using var cmd = new NpgsqlCommand(query, connection);
@@ -131,14 +142,14 @@ namespace SGCI_app.infrastructure.Repositories
 
             while (reader.Read())
             {
-                clientes.Add(new DtoClient
+                empleados.Add(new DtoEmployee
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
                     Nombre = reader.GetString(reader.GetOrdinal("nombre"))
                 });
             }
 
-            return clientes;
+            return empleados;
         }
     }
 }

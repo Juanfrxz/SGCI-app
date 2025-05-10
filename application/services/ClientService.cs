@@ -2,16 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Asn1.Misc;
 using SGCI_app.domain.DTO;
 using SGCI_app.domain.Ports;
 
 namespace SGCI_app.application.services
 {
-    public class DtoClientService
+    public class ClientService
     {
-        private readonly IDtoClientRepository _repo;
-        public DtoClientService(IDtoClientRepository repo)
+        private readonly IClientRepository _repo;
+        public ClientService(IClientRepository repo)
         {
             _repo = repo;
         }
