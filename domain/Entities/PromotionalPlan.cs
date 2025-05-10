@@ -9,8 +9,10 @@ namespace SGCI_app.domain.Entities
     {
         public int Id { get; set; }
         public string? Nombre { get; set; }
+        public int Tecnico_Id { get; set; }
         public DateTime? Inicio { get; set; }
         public DateTime? Fin { get; set; }
         public double Descuento { get; set; }
+        public string? Datos_Extra { get; set; }
     }
 }
