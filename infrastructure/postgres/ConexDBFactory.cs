@@ -89,4 +89,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpThirdPartyTypeRepopsitory (_connectionString);
     }
+    public IPhoneTypeRepository CrearPhoneTypeRepository()
+    {
+        return new ImpPhoneTypeRepository (_connectionString);
+    }
 }

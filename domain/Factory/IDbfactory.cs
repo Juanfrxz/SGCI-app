@@ -22,5 +22,6 @@ public interface IDbfactory
     IPromotionalPlanProductRepository CrearPromoPlanProdRepository();
     IDocTypeRepository CrearDocTypeRepository();
     IThirdPartyTypeRepository CrearThirdPartyTypeRepository();
+    IPhoneTypeRepository CrearPhoneTypeRepository();
 
 }
