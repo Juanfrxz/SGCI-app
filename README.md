@@ -834,4 +834,123 @@ CREATE TRIGGER trg_stock_bajo
     FOR EACH ROW
     EXECUTE FUNCTION fn_crear_compra_automatica();
 
+CREATE OR REPLACE PROCEDURE sp_create_sale (
+    p_fecha DATE,
+    p_tercero_empleado_id TEXT,
+    p_tercero_cliente_id TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_empleado_id INTEGER;
+    v_cliente_id INTEGER;
+BEGIN
+    -- Obtener IDs reales de empleado y cliente desde sus tercero_id
+    SELECT id INTO v_empleado_id FROM empleado WHERE tercero_id = p_tercero_empleado_id;
+    SELECT id INTO v_cliente_id FROM cliente WHERE tercero_id = p_tercero_cliente_id;
+
+    -- Verificar si existen
+    IF v_empleado_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un empleado con el ID de tercero %', p_tercero_empleado_id;
+    END IF;
+    
+    IF v_cliente_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un cliente con el ID de tercero %', p_tercero_cliente_id;
+    END IF;
+
+    -- Insertar la venta
+    INSERT INTO venta (
+        fecha,
+        empleado_id,
+        cliente_id
+    ) VALUES (
+        p_fecha,
+        v_empleado_id,
+        v_cliente_id
+    );
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_update_sale (
+    p_fact_id INTEGER,
+    p_fecha DATE,
+    p_tercero_empleado_id TEXT,
+    p_tercero_cliente_id TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_empleado_id INTEGER;
+    v_cliente_id INTEGER;
+BEGIN
+    -- Obtener IDs reales de empleado y cliente desde sus tercero_id
+    SELECT id INTO v_empleado_id FROM empleado WHERE tercero_id = p_tercero_empleado_id;
+    SELECT id INTO v_cliente_id FROM cliente WHERE tercero_id = p_tercero_cliente_id;
+
+    -- Verificar si existen
+    IF v_empleado_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un empleado con el ID de tercero %', p_tercero_empleado_id;
+    END IF;
+    
+    IF v_cliente_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un cliente con el ID de tercero %', p_tercero_cliente_id;
+    END IF;
+
+    -- Actualizar la venta
+    UPDATE venta
+    SET 
+        fecha = p_fecha,
+        empleado_id = v_empleado_id,
+        cliente_id = v_cliente_id
+    WHERE fact_id = p_fact_id;
+END;
+$$;
+
+-- Trigger para actualizar el stock del producto al crear un detalle de venta
+CREATE OR REPLACE FUNCTION fn_actualizar_stock_venta()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Reducir stock al insertar un detalle de venta
+    UPDATE productos
+    SET 
+        stock = stock - NEW.cantidad,
+        updated_at = CURRENT_DATE
+    WHERE id = NEW.producto_id;
+    
+    -- Verificar si se necesita hacer una compra automática
+    -- (Esto se manejará por el trigger en la tabla productos)
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger
+DROP TRIGGER IF EXISTS trg_actualizar_stock_venta ON detalle_venta;
+CREATE TRIGGER trg_actualizar_stock_venta
+    AFTER INSERT ON detalle_venta
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_actualizar_stock_venta();
+
+-- Trigger para restaurar el stock al eliminar un detalle de venta
+CREATE OR REPLACE FUNCTION fn_restaurar_stock_venta()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Restaurar stock al eliminar un detalle de venta
+    UPDATE productos
+    SET 
+        stock = stock + OLD.cantidad,
+        updated_at = CURRENT_DATE
+    WHERE id = OLD.producto_id;
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger
+DROP TRIGGER IF EXISTS trg_restaurar_stock_venta ON detalle_venta;
+CREATE TRIGGER trg_restaurar_stock_venta
+    BEFORE DELETE ON detalle_venta
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_restaurar_stock_venta();
+
 ```
