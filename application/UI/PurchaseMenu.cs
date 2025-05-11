@@ -210,31 +210,93 @@ namespace SGCI_app.application.UI
             
             var detalle = new PurchaseDetail();
             
-            Console.Write("ID de la Compra: ");
-            if (int.TryParse(Console.ReadLine(), out int compraId))
+            // Validar ID de la Compra
+            bool compraValida = false;
+            do
             {
+                Console.Write("ID de la Compra: ");
+                string? compraInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(compraInput))
+                {
+                    Console.WriteLine("Error: El ID de la compra no puede estar vacío.");
+                    continue;
+                }
+                if (!int.TryParse(compraInput, out int compraId))
+                {
+                    Console.WriteLine("Error: El ID de la compra debe ser un número válido.");
+                    continue;
+                }
                 detalle.Compra_Id = compraId;
-            }
+                compraValida = true;
+            } while (!compraValida);
             
-            Console.Write("ID del Producto: ");
-            detalle.Producto_Id = Console.ReadLine();
-            
-            Console.Write("Cantidad: ");
-            if (int.TryParse(Console.ReadLine(), out int cantidad))
+            // Validar ID del Producto
+            bool productoValido = false;
+            do
             {
+                Console.Write("ID del Producto: ");
+                string? productoInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(productoInput))
+                {
+                    Console.WriteLine("Error: El ID del producto no puede estar vacío.");
+                    continue;
+                }
+                detalle.Producto_Id = productoInput;
+                productoValido = true;
+            } while (!productoValido);
+            
+            // Validar cantidad
+            bool cantidadValida = false;
+            do
+            {
+                Console.Write("Cantidad: ");
+                string? cantidadInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(cantidadInput))
+                {
+                    Console.WriteLine("Error: La cantidad no puede estar vacía.");
+                    continue;
+                }
+                if (!int.TryParse(cantidadInput, out int cantidad) || cantidad <= 0)
+                {
+                    Console.WriteLine("Error: La cantidad debe ser un número positivo.");
+                    continue;
+                }
                 detalle.Cantidad = cantidad;
-            }
+                cantidadValida = true;
+            } while (!cantidadValida);
             
-            Console.Write("Valor: ");
-            if (int.TryParse(Console.ReadLine(), out int valor))
+            // Validar valor
+            bool valorValido = false;
+            do
             {
+                Console.Write("Valor: ");
+                string? valorInput = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(valorInput))
+                {
+                    Console.WriteLine("Error: El valor no puede estar vacío.");
+                    continue;
+                }
+                if (!int.TryParse(valorInput, out int valor) || valor < 0)
+                {
+                    Console.WriteLine("Error: El valor debe ser un número no negativo.");
+                    continue;
+                }
                 detalle.Valor = valor;
-            }
+                valorValido = true;
+            } while (!valorValido);
 
             detalle.Fecha = DateTime.Now;
 
-            _purchaseDetailService.CrearDetalleCompra(detalle);
-            Console.WriteLine("Detalle de compra creado exitosamente.");
+            try
+            {
+                _purchaseDetailService.CrearDetalleCompra(detalle);
+                Console.WriteLine("Detalle de compra creado exitosamente.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al crear el detalle de compra: {ex.Message}");
+            }
+            Console.WriteLine("\nPresione cualquier tecla para continuar...");
             Console.ReadKey();
         }
 
