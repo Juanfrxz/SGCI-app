@@ -19,7 +19,7 @@ public class ImpThirdPartyPhoneRepository : IGenericRepository<ThirdPartyPhone>,
         var thirdPartyPhones = new List<ThirdPartyPhone>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, tercero_id, telefono, tipo FROM tercero_telefono";
+        string query = "SELECT id, tercero_id, numero, tipo_telefono_id FROM tercero_telefonos ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

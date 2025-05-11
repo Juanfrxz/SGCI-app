@@ -18,7 +18,7 @@ public class ImpProductRepository : IGenericRepository<Product>, IProductReposit
         var products = new List<Product>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, nombre, stock, updated_at FROM productos";
+        string query = "SELECT id, nombre, stock, updated_at FROM productos ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

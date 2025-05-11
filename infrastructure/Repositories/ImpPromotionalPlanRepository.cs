@@ -166,7 +166,8 @@ namespace SGCI_app.infrastructure.Repositories
             descuento,
             fecha_inicio,
             fecha_fin
-        FROM planes;
+        FROM planes
+        ORDER BY id ASC;
     ";
 
             using var cmd = new NpgsqlCommand(sql, connection);

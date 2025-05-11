@@ -113,7 +113,8 @@ namespace SGCI_app.infrastructure.Repositories
                 e.id,
                 e.nombre,
                 e.fecha_reg
-            FROM empresa e;";
+            FROM empresa e
+            ORDER BY e.id ASC;";
 
             using var cmd = new NpgsqlCommand(sql, connection);
             using var reader = cmd.ExecuteReader();

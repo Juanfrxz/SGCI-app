@@ -19,7 +19,7 @@ public class ImpPurchaseDetailRepository : IGenericRepository<PurchaseDetail>, I
         var purchaseDetails = new List<PurchaseDetail>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, fecha, producto_id, cantidad, valor, compra_id FROM detalle_compra";
+        string query = "SELECT id, fecha, producto_id, cantidad, valor, compra_id FROM detalle_compra ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

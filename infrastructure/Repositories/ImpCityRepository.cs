@@ -18,7 +18,7 @@ public class ImpCityRepository : IGenericRepository<City>, ICityRepository
         var citys = new List<City>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, nombre, region_id FROM ciudad";
+        string query = "SELECT id, nombre, region_id FROM ciudad ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

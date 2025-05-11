@@ -19,7 +19,7 @@ public class ImpRegionRepository : IGenericRepository<Region>, IRegionRepository
         var regiones = new List<Region>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, nombre FROM region";
+        string query = "SELECT id, nombre FROM region ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 
