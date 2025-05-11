@@ -1,10 +1,17 @@
 using System;
 using SGCI_app.application.services;
+using SGCI_app.infrastructure.Repositories;
+using SGCI_app.domain.Ports;
+using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.application.UI
 {
     public class MainMenu
     {
+        public MainMenu()
+        {
+        }
+
         public void ShowMenu()
         {
             while (true)
@@ -26,6 +33,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("13. Gestión de Tipos de Documentos");
                 Console.WriteLine("14. Gestión de Tipo Terceros");
                 Console.WriteLine("15. Gestión de Tipo Telefonos");
+                Console.WriteLine("16. Gestión de Compras");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -99,6 +107,10 @@ namespace SGCI_app.application.UI
                     case "15":
                         var tipotelefonosMenu = new PhoneTypeMenu();
                         tipotelefonosMenu.ShowMenu();
+                        break;
+                    case "16":
+                        var purchaseMenu = new PurchaseMenu();
+                        purchaseMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");
