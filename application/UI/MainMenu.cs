@@ -37,6 +37,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("17. Gestión de Ventas");
                 Console.WriteLine("18. Gestión de Tipos de Movimiento de Caja");
                 Console.WriteLine("19. Gestión de Sesiones de Caja");
+                Console.WriteLine("20. Gestión de Movimientos de Caja");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -126,6 +127,10 @@ namespace SGCI_app.application.UI
                     case "19":
                         var sescajaMenu = new CashSessionMenu();
                         sescajaMenu.ShowMenu();
+                        break;
+                    case "20":
+                        var movcajaMenu = new CashMovementMenu();
+                        movcajaMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");

@@ -26,5 +26,5 @@ public interface IDbfactory
     IProductSupplierRepository CrearProductSupplierRepository();
     ICashMovementTypeRepository CrearCashMovementTypeRepository();
     ICashSessionRepository CrearCashSessionRepository();
-
+    ICashMovementRepository CrearCashMovementRepository();
 }
