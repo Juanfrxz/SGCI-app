@@ -1149,6 +1149,5 @@ CREATE TRIGGER trg_actualizar_balance
 AFTER INSERT ON mov_caja
 FOR EACH ROW
 EXECUTE FUNCTION fn_actualizar_balance_sesion();
-z
 
 ```

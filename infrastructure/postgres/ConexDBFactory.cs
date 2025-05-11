@@ -101,4 +101,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpCashMovementTypeRepository (_connectionString);
     }
+    public ICashSessionRepository CrearCashSessionRepository()
+    {
+        return new ImpCashSessionRepository(_connectionString);
+    }
 }
