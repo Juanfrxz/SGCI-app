@@ -98,6 +98,11 @@ CREATE TABLE tipo_documentos (
   descripcion VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE tipo_telefonos (
+  id SERIAL PRIMARY KEY,
+  description VARCHAR(50) NOT NULL
+);
+
 CREATE TABLE direccion (
   id SERIAL PRIMARY KEY,
   calle VARCHAR(255) NOT NULL,
@@ -126,7 +131,8 @@ CREATE TABLE tercero_telefonos (
   id SERIAL PRIMARY KEY,
   tercero_id TEXT NOT NULL,
   numero VARCHAR(30) NOT NULL,
-  tipo VARCHAR(20),
+  tipo_telefono_id INTEGER NOT NULL,
+  CONSTRAINT fk_tipo_telefono FOREIGN KEY (tipo_telefono_id) REFERENCES tipo_telefonos(id),
   CONSTRAINT fk_terceros FOREIGN KEY (tercero_id) REFERENCES terceros(id)
 );
 

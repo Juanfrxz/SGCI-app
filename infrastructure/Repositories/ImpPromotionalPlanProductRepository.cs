@@ -76,7 +76,8 @@ VALUES (@plan_id, @producto_id);
             var conn = _conexion.ObtenerConexion();
             const string sql = @"
 SELECT plan_id, producto_id
-FROM plan_producto;
+FROM plan_producto
+ORDER BY plan_id ASC;
 ";
             using var cmd = new NpgsqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();

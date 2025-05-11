@@ -139,7 +139,8 @@ namespace SGCI_app.infrastructure.Repositories
             p.dto    AS descuento,
             p.dia_pago     AS dia_pago
         FROM proveedor p
-        JOIN terceros t ON p.tercero_id = t.id;
+        JOIN terceros t ON p.tercero_id = t.id
+        ORDER BY p.id ASC;
     ";
 
             using var cmd = new NpgsqlCommand(sql, connection);

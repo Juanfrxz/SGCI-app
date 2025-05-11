@@ -19,7 +19,7 @@ public class ImpSaleRepository : IGenericRepository<Sale>, ISaleRepository
         var sales = new List<Sale>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT fact_id, fecha, tercero_empleado_id, tercero_cliente_id FROM venta";
+        string query = "SELECT fact_id, fecha, tercero_empleado_id, tercero_cliente_id FROM venta ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

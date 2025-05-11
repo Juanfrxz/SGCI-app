@@ -21,7 +21,7 @@ namespace SGCI_app.infrastructure.Repositories
             var arls = new List<ARL>();
             var connection = _conexion.ObtenerConexion();
 
-            string query = "SELECT id, nombre FROM arl";
+            string query = "SELECT id, nombre FROM arl ORDER BY id ASC;";
             using var cmd = new NpgsqlCommand(query, connection);
             using var reader = cmd.ExecuteReader();
 

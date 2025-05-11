@@ -23,6 +23,9 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("10. Gestión de Empresas");
                 Console.WriteLine("11. Gestion de Productos");
                 Console.WriteLine("12. Gestión de Asociaciones Plan-Producto");
+                Console.WriteLine("13. Gestión de Tipos de Documentos");
+                Console.WriteLine("14. Gestión de Tipo Terceros");
+                Console.WriteLine("15. Gestión de Tipo Telefonos");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -84,6 +87,18 @@ namespace SGCI_app.application.UI
                     case "12":
                         var promoplanMenu = new PromotionalPlanProductMenu();
                         promoplanMenu.ShowMenu();
+                        break;
+                    case "13":
+                        var doctypeMenu = new DocTypeMenu();
+                        doctypeMenu.ShowMenu();
+                        break;
+                    case "14":
+                        var tipotercerosMenu = new ThirdPartyTypeMenu();
+                        tipotercerosMenu.ShowMenu();
+                        break;
+                    case "15":
+                        var tipotelefonosMenu = new PhoneTypeMenu();
+                        tipotelefonosMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");

@@ -126,7 +126,7 @@ namespace SGCI_app.infrastructure.Repositories
             // Aquí obtienes la conexión abierta de tu singleton…
             var connection = _conexion.ObtenerConexion();
 
-            string query = "SELECT c.id AS id, t.nombre AS nombre FROM cliente c JOIN terceros t ON c.tercero_id = t.id;";
+            string query = "SELECT c.id AS id, t.nombre AS nombre FROM cliente c JOIN terceros t ON c.tercero_id = t.id ORDER BY c.id ASC;";
 
             // Usamos using sólo en el comando y el reader, no en la conexión singleton
             using var cmd = new NpgsqlCommand(query, connection);

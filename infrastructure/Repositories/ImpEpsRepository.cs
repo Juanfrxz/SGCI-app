@@ -35,7 +35,7 @@ namespace SGCI_app.infrastructure.Repositories
         // Obtener todas las EPS
         public List<EPS> ObtenerTodos()
         {
-            const string sql = @"SELECT id, nombre FROM eps;";
+            const string sql = @"SELECT id, nombre FROM eps ORDER BY id ASC;";
             var results = new List<EPS>();
 
             var connection = _conexion.ObtenerConexion();
