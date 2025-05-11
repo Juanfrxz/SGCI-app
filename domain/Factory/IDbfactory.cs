@@ -21,4 +21,6 @@ public interface IDbfactory
     IProductRepository CrearProductRepository();
     IPromotionalPlanProductRepository CrearPromoPlanProdRepository();
     IDocTypeRepository CrearDocTypeRepository();
+    IThirdPartyTypeRepository CrearThirdPartyTypeRepository();
+
 }

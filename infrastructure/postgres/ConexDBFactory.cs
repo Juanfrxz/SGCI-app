@@ -85,4 +85,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpDocTypeRepository(_connectionString);
     }
+    public IThirdPartyTypeRepository CrearThirdPartyTypeRepository()
+    {
+        return new ImpThirdPartyTypeRepopsitory (_connectionString);
+    }
 }
