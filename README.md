@@ -733,6 +733,107 @@ BEGIN
 END;
 $$;
 
+-- Purchase
+-- Procedimiento para crear una compra
+CREATE OR REPLACE PROCEDURE sp_create_purchase(
+    p_proveedor_id INTEGER,
+    p_fecha DATE,
+    p_empleado_id INTEGER,
+    p_doc_compra VARCHAR(50)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO compras (
+        proveedor_id,
+        fecha,
+        empleado_id,
+        doc_compra
+    ) VALUES (
+        p_proveedor_id,
+        p_fecha,
+        p_empleado_id,
+        p_doc_compra
+    );
+END;
+$$;
 
+-- Procedimiento para crear un detalle de compra
+CREATE OR REPLACE PROCEDURE sp_create_purchase_detail(
+    p_compra_id INTEGER,
+    p_producto_id VARCHAR(20),
+    p_cantidad INTEGER,
+    p_valor DOUBLE PRECISION
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO detalle_compra (
+        compra_id,
+        producto_id,
+        cantidad,
+        valor,
+        fecha
+    ) VALUES (
+        p_compra_id,
+        p_producto_id,
+        p_cantidad,
+        p_valor,
+        CURRENT_DATE
+    );
+END;
+$$;
+
+-- triggers
+
+-- Trigger para actualizar el stock de productos
+CREATE OR REPLACE FUNCTION update_product_stock()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Actualizar el stock del producto
+    UPDATE productos
+    SET stock = stock + NEW.cantidad
+    WHERE id = NEW.producto_id;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_stock_after_purchase
+    AFTER INSERT ON detalle_compra
+    FOR EACH ROW
+    EXECUTE FUNCTION update_product_stock();
+
+-- Trigger para validar proveedor
+CREATE OR REPLACE FUNCTION validate_provider()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM proveedor WHERE id = NEW.proveedor_id) THEN
+        RAISE EXCEPTION 'El proveedor con ID % no existe', NEW.proveedor_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_provider
+    BEFORE INSERT ON compras
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_provider();
+
+-- Trigger para validar empleado
+CREATE OR REPLACE FUNCTION validate_employee()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM empleado WHERE id = NEW.empleado_id) THEN
+        RAISE EXCEPTION 'El empleado con ID % no existe', NEW.empleado_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_employee
+    BEFORE INSERT ON compras
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_employee();
 
 ```
