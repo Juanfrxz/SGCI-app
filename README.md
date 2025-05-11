@@ -733,107 +733,105 @@ BEGIN
 END;
 $$;
 
--- Purchase
--- Procedimiento para crear una compra
-CREATE OR REPLACE PROCEDURE sp_create_purchase(
-    p_proveedor_id INTEGER,
-    p_fecha DATE,
-    p_empleado_id INTEGER,
-    p_doc_compra VARCHAR(50)
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    INSERT INTO compras (
-        proveedor_id,
-        fecha,
-        empleado_id,
-        doc_compra
-    ) VALUES (
-        p_proveedor_id,
-        p_fecha,
-        p_empleado_id,
-        p_doc_compra
-    );
-END;
-$$;
-
--- Procedimiento para crear un detalle de compra
-CREATE OR REPLACE PROCEDURE sp_create_purchase_detail(
-    p_compra_id INTEGER,
-    p_producto_id VARCHAR(20),
-    p_cantidad INTEGER,
-    p_valor DOUBLE PRECISION
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    INSERT INTO detalle_compra (
-        compra_id,
-        producto_id,
-        cantidad,
-        valor,
-        fecha
-    ) VALUES (
-        p_compra_id,
-        p_producto_id,
-        p_cantidad,
-        p_valor,
-        CURRENT_DATE
-    );
-END;
-$$;
-
--- triggers
-
--- Trigger para actualizar el stock de productos
-CREATE OR REPLACE FUNCTION update_product_stock()
+-- Función trigger para crear compra automática cuando el stock está bajo
+CREATE OR REPLACE FUNCTION fn_crear_compra_automatica()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_id_proveedor TEXT;
+    v_id_empleado TEXT;
+    v_id_compra INTEGER;
+    v_cantidad_compra INTEGER;
+    v_proveedor_id INTEGER;
+    v_empleado_id INTEGER;
 BEGIN
-    -- Actualizar el stock del producto
-    UPDATE productos
-    SET stock = stock + NEW.cantidad
-    WHERE id = NEW.producto_id;
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+    -- Solo se activa si el stock está por debajo del mínimo
+    IF NEW.stock < NEW.stock_min THEN
+        -- Verificar si existe al menos un proveedor para el producto
+        SELECT p.tercero_id INTO v_id_proveedor
+        FROM productos_proveedor pp
+        JOIN proveedor p ON pp.tercero_id = p.tercero_id
+        WHERE pp.producto_id = NEW.id
+        LIMIT 1;
 
-CREATE TRIGGER trg_update_stock_after_purchase
-    AFTER INSERT ON detalle_compra
-    FOR EACH ROW
-    EXECUTE FUNCTION update_product_stock();
+        IF v_id_proveedor IS NULL THEN
+            RAISE EXCEPTION 'No hay proveedores asociados al producto %', NEW.id;
+        END IF;
 
--- Trigger para validar proveedor
-CREATE OR REPLACE FUNCTION validate_provider()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM proveedor WHERE id = NEW.proveedor_id) THEN
-        RAISE EXCEPTION 'El proveedor con ID % no existe', NEW.proveedor_id;
+        -- Obtener el ID del proveedor
+        SELECT id INTO v_proveedor_id
+        FROM proveedor
+        WHERE tercero_id = v_id_proveedor;
+
+        -- Obtener un empleado activo (que tenga fecha de ingreso)
+        SELECT e.tercero_id INTO v_id_empleado
+        FROM empleado e
+        WHERE e.fecha_ingreso IS NOT NULL
+        ORDER BY e.fecha_ingreso DESC
+        LIMIT 1;
+
+        IF v_id_empleado IS NULL THEN
+            RAISE EXCEPTION 'No hay empleados activos en el sistema';
+        END IF;
+
+        -- Obtener el ID del empleado
+        SELECT id INTO v_empleado_id
+        FROM empleado
+        WHERE tercero_id = v_id_empleado;
+
+        -- Calcular la cantidad a comprar (diferencia entre máximo y stock actual)
+        v_cantidad_compra := NEW.stock_max - NEW.stock;
+
+        -- Crear la compra
+        INSERT INTO compras (
+            proveedor_id,
+            fecha,
+            empleado_id,
+            doc_compra
+        ) VALUES (
+            v_proveedor_id,
+            CURRENT_DATE,
+            v_empleado_id,
+            'AUTO-' || NEW.id || '-' || to_char(CURRENT_DATE, 'YYYYMMDD')
+        )
+        RETURNING id INTO v_id_compra;
+
+        -- Crear el detalle de la compra
+        INSERT INTO detalle_compra (
+            compra_id,
+            producto_id,
+            cantidad,
+            valor,
+            fecha
+        ) VALUES (
+            v_id_compra,
+            NEW.id,
+            v_cantidad_compra,
+            0, -- El valor se puede actualizar después manualmente
+            CURRENT_DATE
+        );
+
+        -- Actualizar el stock del producto
+        UPDATE productos
+        SET 
+            stock = NEW.stock + v_cantidad_compra,
+            updated_at = CURRENT_DATE
+        WHERE id = NEW.id;
+
+        -- Registrar en el log (opcional)
+        RAISE NOTICE 'Compra automática creada para el producto % con cantidad %', NEW.id, v_cantidad_compra;
     END IF;
     RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error al crear compra automática: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_validate_provider
-    BEFORE INSERT ON compras
+-- Crear el trigger
+DROP TRIGGER IF EXISTS trg_stock_bajo ON productos;
+CREATE TRIGGER trg_stock_bajo
+    AFTER UPDATE OF stock ON productos
     FOR EACH ROW
-    EXECUTE FUNCTION validate_provider();
-
--- Trigger para validar empleado
-CREATE OR REPLACE FUNCTION validate_employee()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM empleado WHERE id = NEW.empleado_id) THEN
-        RAISE EXCEPTION 'El empleado con ID % no existe', NEW.empleado_id;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_validate_employee
-    BEFORE INSERT ON compras
-    FOR EACH ROW
-    EXECUTE FUNCTION validate_employee();
+    EXECUTE FUNCTION fn_crear_compra_automatica();
 
 ```
