@@ -17,6 +17,8 @@ namespace SGCI_app.domain.DTO
         public int TipoDoc_id { get; set; }
         public int TipoTercero_id { get; set; }
 
+        public string? Tercero_Id { get; set; }
+
         public DtoAddress Address { get; set; } = new DtoAddress();
         public DtoEmp Employee { get; set; } = new DtoEmp();
     }

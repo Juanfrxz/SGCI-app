@@ -19,7 +19,7 @@ namespace SGCI_app.application.services
             var lista = _repo.ObtenerTodos();
             foreach (var c in lista)
             {
-                Console.WriteLine($"ID: {c.Id}, Nombre: {c.Nombre}");
+                Console.WriteLine($"ID: {c.Id}, Nombre: {c.Nombre}, ID Tercero  : {c.Tercero_Id}");
             }
         }
         public void CrearEmpleado(DtoEmployee demployee)

@@ -42,9 +42,9 @@ namespace SGCI_app.infrastructure.Repositories
             cmd.Parameters.AddWithValue("p_empleado_id", id);
 
             // 2) Datos en 'terceros'
-            cmd.Parameters.AddWithValue("p_nombre", entity.Nombre ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("p_apellidos", entity.Apellidos ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("p_email", entity.Email ?? (object) DBNull.Value);
+            cmd.Parameters.AddWithValue("p_nombre", entity.Nombre ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("p_apellidos", entity.Apellidos ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("p_email", entity.Email ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("p_tipo_tercero_id", entity.TipoTercero_id);
             cmd.Parameters.AddWithValue("p_tipo_documento_id", entity.TipoDoc_id);
 
@@ -134,7 +134,16 @@ namespace SGCI_app.infrastructure.Repositories
             // Aquí obtienes la conexión abierta de tu singleton…
             var connection = _conexion.ObtenerConexion();
 
-            string query = "SELECT e.id AS id, t.nombre AS nombre FROM empleado e JOIN terceros t ON e.tercero_id = t.id ORDER BY e.id ASC;";
+            string query = @"
+        SELECT
+            e.id          AS id,
+            t.id::text    AS id_tercero,
+            t.nombre      AS nombre
+        FROM empleado e
+        JOIN terceros t ON e.tercero_id = t.id
+        ORDER BY e.id ASC;
+    ";
+
 
             // Usamos using sólo en el comando y el reader, no en la conexión singleton
             using var cmd = new NpgsqlCommand(query, connection);
@@ -145,7 +154,8 @@ namespace SGCI_app.infrastructure.Repositories
                 empleados.Add(new DtoEmployee
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre"))
+                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
+                    Tercero_Id  = reader.GetString  (reader.GetOrdinal("id_tercero"))
                 });
             }
 
