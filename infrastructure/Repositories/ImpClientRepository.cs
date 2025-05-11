@@ -40,9 +40,9 @@ namespace SGCI_app.infrastructure.Repositories
 
             // 3) Parámetros
             cmd.Parameters.AddWithValue("cliente_id", id);
-            cmd.Parameters.AddWithValue("nombre", entity.Nombre ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("apellidos", entity.Apellidos ?? (object) DBNull.Value);
-            cmd.Parameters.AddWithValue("email", entity.Email ?? (object) DBNull.Value);
+            cmd.Parameters.AddWithValue("nombre", entity.Nombre ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("apellidos", entity.Apellidos ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("email", entity.Email ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("tipo_tercero_id", entity.TipoTercero_id);
             cmd.Parameters.AddWithValue("tipo_documento_id", entity.TipoDoc_id);
 
@@ -51,7 +51,9 @@ namespace SGCI_app.infrastructure.Repositories
             if (rows == 0)
             {
                 throw new InvalidOperationException($"No se encontró cliente con id = {id} para actualizar.");
-            } else {
+            }
+            else
+            {
                 Console.WriteLine("Datos personales actualizados exitosamente!!!");
             }
 
@@ -126,9 +128,16 @@ namespace SGCI_app.infrastructure.Repositories
             // Aquí obtienes la conexión abierta de tu singleton…
             var connection = _conexion.ObtenerConexion();
 
-            string query = "SELECT c.id AS id, t.nombre AS nombre FROM cliente c JOIN terceros t ON c.tercero_id = t.id ORDER BY c.id ASC;";
+            string query = @"
+    SELECT
+        c.id           AS id,
+        t.id           AS id_tercero,
+        t.nombre       AS nombre
+    FROM cliente c
+    JOIN terceros t ON c.tercero_id = t.id
+    ORDER BY c.id ASC;
+";
 
-            // Usamos using sólo en el comando y el reader, no en la conexión singleton
             using var cmd = new NpgsqlCommand(query, connection);
             using var reader = cmd.ExecuteReader();
 
@@ -137,9 +146,12 @@ namespace SGCI_app.infrastructure.Repositories
                 clientes.Add(new DtoClient
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre"))
+                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
+                    Tercero_Id = reader.GetString(reader.GetOrdinal("id_tercero"))
+                    // (el resto de campos quedan como antes)
                 });
             }
+
 
             return clientes;
         }

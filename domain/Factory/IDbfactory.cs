@@ -24,5 +24,7 @@ public interface IDbfactory
     IThirdPartyTypeRepository CrearThirdPartyTypeRepository();
     IPhoneTypeRepository CrearPhoneTypeRepository();
     IProductSupplierRepository CrearProductSupplierRepository();
-
+    ICashMovementTypeRepository CrearCashMovementTypeRepository();
+    ICashSessionRepository CrearCashSessionRepository();
+    ICashMovementRepository CrearCashMovementRepository();
 }
