@@ -20,7 +20,7 @@ public class ImpThirdPartyRepository : IGenericRepository<ThirdParty>, IThirdPar
         var thirdParties = new List<ThirdParty>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, direccion_id FROM terceros";
+        string query = "SELECT id, nombre, apellidos, email, tipo_documento_id, tipo_terceros_id, direccion_id FROM terceros ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

@@ -2,6 +2,7 @@ using SGCI_app.domain.Entities;
 using SGCI_app.domain.Ports;
 using SGCI_app.infrastructure.postgres;
 using Npgsql;
+using System.Collections.Generic;
 
 namespace SGCI_app.infrastructure.Repositories;
 
@@ -19,7 +20,13 @@ public class ImpThirdPartyPhoneRepository : IGenericRepository<ThirdPartyPhone>,
         var thirdPartyPhones = new List<ThirdPartyPhone>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, tercero_id, telefono, tipo FROM tercero_telefono";
+        const string query = @"
+SELECT id,
+       tercero_id,
+       telefono,
+       tipo_telefono_id
+FROM tercero_telefono;
+";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 
@@ -30,7 +37,7 @@ public class ImpThirdPartyPhoneRepository : IGenericRepository<ThirdPartyPhone>,
                 Id = reader.GetInt32(reader.GetOrdinal("id")),
                 Tercer_Id = reader.GetString(reader.GetOrdinal("tercero_id")),
                 Numero = reader.GetString(reader.GetOrdinal("telefono")),
-                Tipo = reader.GetString(reader.GetOrdinal("tipo"))
+                Tipo_Telefono_Id = reader.GetInt32(reader.GetOrdinal("tipo_telefono_id"))
             });
         }
 
@@ -40,38 +47,48 @@ public class ImpThirdPartyPhoneRepository : IGenericRepository<ThirdPartyPhone>,
     public void Crear(ThirdPartyPhone entity)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "INSERT INTO tercero_telefono (tercer_id, numero, tipo) VALUES (@tercer_id, @numero, @tipo)";
-        
+        const string query = @"
+INSERT INTO tercero_telefono (tercero_id, telefono, tipo_telefono_id)
+VALUES (@tercero_id, @telefono, @tipo_telefono_id);
+";
         using var cmd = new NpgsqlCommand(query, connection);
-        cmd.Parameters.AddWithValue("@tercer_id", entity.Tercer_Id ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@numero", entity.Numero ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@tipo", entity.Tipo ?? (object)DBNull.Value);
-        
+        cmd.Parameters.AddWithValue("@tercero_id", entity.Tercer_Id ?? (object) DBNull.Value);
+        cmd.Parameters.AddWithValue("@telefono",  entity.Numero ?? (object) DBNull.Value);
+        cmd.Parameters.AddWithValue("@tipo_telefono_id", entity.Tipo_Telefono_Id);
         cmd.ExecuteNonQuery();
     }
 
     public void Actualizar(ThirdPartyPhone entity)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "UPDATE tercero_telefono SET tercer_id = @tercer_id, numero = @numero, tipo = @tipo WHERE id = @id";
-        
+        const string query = @"
+UPDATE tercero_telefono
+SET tercero_id         = @tercero_id,
+    telefono           = @telefono,
+    tipo_telefono_id   = @tipo_telefono_id
+WHERE id = @id;
+";
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", entity.Id);
-        cmd.Parameters.AddWithValue("@tercer_id", entity.Tercer_Id ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@numero", entity.Numero ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@tipo", entity.Tipo ?? (object)DBNull.Value);
-        
-        cmd.ExecuteNonQuery();
+        cmd.Parameters.AddWithValue("@tercero_id", entity.Tercer_Id ?? (object) DBNull.Value);
+        cmd.Parameters.AddWithValue("@telefono", entity.Numero ?? (object) DBNull.Value);
+        cmd.Parameters.AddWithValue("@tipo_telefono_id", entity.Tipo_Telefono_Id);
+        var rows = cmd.ExecuteNonQuery();
+        if (rows == 0)
+            throw new InvalidOperationException($"No se encontró el registro con id={entity.Id} para actualizar.");
     }
 
     public void Eliminar(int id)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "DELETE FROM tercero_telefono WHERE id = @id";
-        
+        const string query = @"
+DELETE FROM tercero_telefono
+WHERE id = @id;
+";
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", id);
-        
-        cmd.ExecuteNonQuery();
+        var rows = cmd.ExecuteNonQuery();
+        if (rows == 0)
+            throw new InvalidOperationException($"No se encontró el registro con id={id} para eliminar.");
     }
 }

@@ -38,4 +38,63 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpProviderRepository(_connectionString);
     }
+    public IPromotionalPlanRepository CrearPromoPlanRepository()
+    {
+        return new ImpPromotionalPlanRepository(_connectionString);
+    }
+    public IEpsRepository CrearEpsRepository()
+    {
+        return new ImpEpsRepository(_connectionString);
+    }
+    public IArlRepository CrearArlRepository()
+    {
+        return new ImpArlRepository(_connectionString);
+    }
+    public ISaleRepository CrearSaleRepository()
+    {
+        return new ImpSaleRepository(_connectionString);
+    }
+
+    public ISaleDetailRepository CrearSaleDetailRepository()
+    {
+        return new ImpSaleDetailRepository(_connectionString);
+    }
+
+    public IPurchaseRepository CrearPurchaseRepository()
+    {
+        return new ImpPurchaseRepository(_connectionString);
+    }
+
+    public IPurchaseDetailRepository CrearPurchaseDetailRepository()
+    {
+        return new ImpPurchaseDetailRepository(_connectionString);
+    }
+    public ICompanyRepository CrearCompanyRepository()
+    {
+        return new ImpCompanyRepository(_connectionString);
+    }
+    public IProductRepository CrearProductRepository()
+    {
+        return new ImpProductRepository(_connectionString);
+    }
+    public IPromotionalPlanProductRepository CrearPromoPlanProdRepository()
+    {
+        return new ImpPromotionalPlanProductRepository(_connectionString);
+    }
+    public IDocTypeRepository CrearDocTypeRepository()
+    {
+        return new ImpDocTypeRepository(_connectionString);
+    }
+    public IThirdPartyTypeRepository CrearThirdPartyTypeRepository()
+    {
+        return new ImpThirdPartyTypeRepopsitory (_connectionString);
+    }
+    public IPhoneTypeRepository CrearPhoneTypeRepository()
+    {
+        return new ImpPhoneTypeRepository (_connectionString);
+    }
+    public IProductSupplierRepository CrearProductSupplierRepository()
+    {
+        return new ImpProductSupplierRepository (_connectionString);
+    }
 }

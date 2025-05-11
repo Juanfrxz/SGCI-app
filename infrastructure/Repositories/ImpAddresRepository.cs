@@ -20,7 +20,7 @@ public class ImpAddresRepository : IGenericRepository<Address>, IAddressReposito
         var addresses = new List<Address>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, calle, numero_edificio, codigo_postal, ciudad_id, ifo_adicional FROM direcciones";
+        string query = "SELECT id, calle, numero_edificio, codigo_postal, ciudad_id, informacion_adicional FROM direccion ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 

@@ -18,7 +18,7 @@ public class ImpProductRepository : IGenericRepository<Product>, IProductReposit
         var products = new List<Product>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, nombre, stock, stock_min, stock_max, fecha_creacion, fecha_actualizacion, codigo_barras FROM productos";
+        string query = "SELECT id, nombre, stock, updated_at FROM productos ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 
@@ -29,11 +29,7 @@ public class ImpProductRepository : IGenericRepository<Product>, IProductReposit
                 Id = reader.GetString(reader.GetOrdinal("id")),
                 Nombre = reader.GetString(reader.GetOrdinal("nombre")),
                 Stock = reader.GetInt32(reader.GetOrdinal("stock")),
-                StockMin = reader.GetInt32(reader.GetOrdinal("stock_min")),
-                StockMax = reader.GetInt32(reader.GetOrdinal("stock_max")),
-                FechaCreacion = reader.GetDateTime(reader.GetOrdinal("fecha_creacion")),
-                FechaActualizacion = reader.GetDateTime(reader.GetOrdinal("fecha_actualizacion")),
-                CodigoBarras = reader.GetString(reader.GetOrdinal("codigo_barras"))
+                FechaActualizacion = reader.GetDateTime(reader.GetOrdinal("updated_at"))
             });
         }
 
@@ -43,46 +39,68 @@ public class ImpProductRepository : IGenericRepository<Product>, IProductReposit
     public void Crear(Product entity)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "INSERT INTO productos (id, nombre, stock, stock_min, stock_max, fecha_creacion, fecha_actualizacion, codigo_barras) VALUES (@id, @nombre, @stock, @stock_min, @stock_max, @fecha_creacion, @fecha_actualizacion, @codigo_barras)";
-        
+        string query = @"
+        INSERT INTO productos 
+            (id, nombre, stock, stock_min, stock_max, created_at, updated_at, barcode) 
+        VALUES 
+            (@id, @nombre, @stock, @stock_min, @stock_max, @fecha_creacion, @fecha_actualizacion, @codigo_barras);
+    ";
+
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", entity.Id ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@nombre", entity.Nombre ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@stock", entity.Stock);
-        cmd.Parameters.AddWithValue("@stock_min", entity.StockMin);
-        cmd.Parameters.AddWithValue("@stock_max", entity.StockMax);
+
+        // Si el usuario no proporciona valor, usamos 0 como default
+        cmd.Parameters.AddWithValue("@stock", entity.Stock ?? 0);
+        cmd.Parameters.AddWithValue("@stock_min", entity.StockMin ?? 0);
+        cmd.Parameters.AddWithValue("@stock_max", entity.StockMax ?? 0);
+
         cmd.Parameters.AddWithValue("@fecha_creacion", entity.FechaCreacion ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@fecha_actualizacion", entity.FechaActualizacion ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@codigo_barras", entity.CodigoBarras ?? (object)DBNull.Value);
-        
+
         cmd.ExecuteNonQuery();
     }
+
 
     public void Actualizar(Product entity)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "UPDATE productos SET nombre = @nombre, stock = @stock, stock_min = @stock_min, stock_max = @stock_max, fecha_creacion = @fecha_creacion, fecha_actualizacion = @fecha_actualizacion, codigo_barras = @codigo_barras WHERE id = @id";
-        
+        string query = @"
+        UPDATE productos SET 
+            nombre = COALESCE(@nombre, nombre),
+            stock = COALESCE(@stock, stock),
+            stock_min = COALESCE(@stock_min, stock_min),
+            stock_max = COALESCE(@stock_max, stock_max),
+            updated_at = COALESCE(@fecha_actualizacion, updated_at),
+            barcode = COALESCE(@codigo_barras, barcode)
+        WHERE id = @id;
+    ";
+
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", entity.Id ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@nombre", entity.Nombre ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@stock", entity.Stock);
-        cmd.Parameters.AddWithValue("@stock_min", entity.StockMin);
-        cmd.Parameters.AddWithValue("@stock_max", entity.StockMax);
-        cmd.Parameters.AddWithValue("@fecha_creacion", entity.FechaCreacion ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("@nombre", string.IsNullOrWhiteSpace(entity.Nombre) ? (object)DBNull.Value : entity.Nombre);
+        cmd.Parameters.AddWithValue("@stock", entity.Stock.HasValue ? entity.Stock : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("@stock_min", entity.StockMin.HasValue ? entity.StockMin : (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("@stock_max", entity.StockMax.HasValue ? entity.StockMax : (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@fecha_actualizacion", entity.FechaActualizacion ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@codigo_barras", entity.CodigoBarras ?? (object)DBNull.Value);
-        
+        cmd.Parameters.AddWithValue("@codigo_barras", string.IsNullOrWhiteSpace(entity.CodigoBarras) ? (object)DBNull.Value : entity.CodigoBarras);
+
         cmd.ExecuteNonQuery();
     }
 
     public void Eliminar(int id)
     {
+        throw new NotImplementedException();
+    }
+
+    public void Eliminar(string id)
+    {
         var connection = _conexion.ObtenerConexion();
         string query = "DELETE FROM productos WHERE id = @id";
-        
+
         using var cmd = new NpgsqlCommand(query, connection);
-        cmd.Parameters.AddWithValue("@id", id.ToString());
+        cmd.Parameters.AddWithValue("@id", id);
         cmd.ExecuteNonQuery();
     }
 }

@@ -20,7 +20,7 @@ public class ImpThirdPartyTypeRepopsitory : IGenericRepository<ThirdPartyType>, 
         var types = new List<ThirdPartyType>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, descripcion FROM tipo_tercero";
+        string query = "SELECT id, descripcion FROM tipo_terceros ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 
@@ -39,7 +39,7 @@ public class ImpThirdPartyTypeRepopsitory : IGenericRepository<ThirdPartyType>, 
     public void Crear(ThirdPartyType entity)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "INSERT INTO tipo_tercero (descripcion) VALUES (@descripcion)";
+        string query = "INSERT INTO tipo_terceros (descripcion) VALUES (@descripcion)";
         
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@descripcion", entity.Descripcion ?? (object)DBNull.Value);
@@ -50,7 +50,7 @@ public class ImpThirdPartyTypeRepopsitory : IGenericRepository<ThirdPartyType>, 
     public void Actualizar(ThirdPartyType entity)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "UPDATE tipo_tercero SET descripcion = @descripcion WHERE id = @id";
+        string query = "UPDATE tipo_terceros SET descripcion = @descripcion WHERE id = @id";
         
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", entity.Id);
@@ -62,7 +62,7 @@ public class ImpThirdPartyTypeRepopsitory : IGenericRepository<ThirdPartyType>, 
     public void Eliminar(int id)
     {
         var connection = _conexion.ObtenerConexion();
-        string query = "DELETE FROM tipo_tercero WHERE id = @id";
+        string query = "DELETE FROM tipo_terceros WHERE id = @id";
         
         using var cmd = new NpgsqlCommand(query, connection);
         cmd.Parameters.AddWithValue("@id", id);

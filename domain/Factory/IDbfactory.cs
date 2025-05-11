@@ -10,4 +10,19 @@ public interface IDbfactory
     IClientRepository CrearClientRepository();
     IEmployeeRepository CrearEmployeeRepository();
     IProviderRepository CrearProviderRepository();
+    IPromotionalPlanRepository CrearPromoPlanRepository();
+    IEpsRepository CrearEpsRepository();
+    IArlRepository CrearArlRepository();
+    ISaleRepository CrearSaleRepository();
+    ISaleDetailRepository CrearSaleDetailRepository();
+    IPurchaseRepository CrearPurchaseRepository();
+    IPurchaseDetailRepository CrearPurchaseDetailRepository();
+    ICompanyRepository CrearCompanyRepository();
+    IProductRepository CrearProductRepository();
+    IPromotionalPlanProductRepository CrearPromoPlanProdRepository();
+    IDocTypeRepository CrearDocTypeRepository();
+    IThirdPartyTypeRepository CrearThirdPartyTypeRepository();
+    IPhoneTypeRepository CrearPhoneTypeRepository();
+    IProductSupplierRepository CrearProductSupplierRepository();
+
 }

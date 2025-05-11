@@ -17,7 +17,7 @@ public class ImpCountryRepository : IGenericRepository<Country>, ICountryReposit
         var countries = new List<Country>();
         var connection = _conexion.ObtenerConexion();
 
-        string query = "SELECT id, nombre FROM pais";
+        string query = "SELECT id, nombre FROM pais ORDER BY id ASC;";
         using var cmd = new NpgsqlCommand(query, connection);
         using var reader = cmd.ExecuteReader();
 
