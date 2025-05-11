@@ -10,5 +10,6 @@ namespace SGCI_app.domain.DTO
         public int Id { get; set; }
         public double Descuento { get; set; }
         public int DiaPago { get; set; }        
+        public string? Tercero_Id { get; set; }       
     }
 }

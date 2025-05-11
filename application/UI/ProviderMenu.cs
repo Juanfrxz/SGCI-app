@@ -190,6 +190,7 @@ namespace SGCI_app.application.UI
                         Console.WriteLine($"Nombre: {proveedor.Nombre}");
                         Console.WriteLine($"Descuento: {proveedor.Provider.Descuento}%");
                         Console.WriteLine($"Día de Pago: {proveedor.Provider.DiaPago}");
+                        Console.WriteLine($"Id Tercero Proveedor: {proveedor.Provider.Tercero_Id}");
                         Console.WriteLine("------------------------");
                     }
                 }

@@ -93,4 +93,8 @@ public class ConexDBFactory : IDbfactory
     {
         return new ImpPhoneTypeRepository (_connectionString);
     }
+    public IProductSupplierRepository CrearProductSupplierRepository()
+    {
+        return new ImpProductSupplierRepository (_connectionString);
+    }
 }

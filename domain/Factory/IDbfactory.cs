@@ -23,5 +23,6 @@ public interface IDbfactory
     IDocTypeRepository CrearDocTypeRepository();
     IThirdPartyTypeRepository CrearThirdPartyTypeRepository();
     IPhoneTypeRepository CrearPhoneTypeRepository();
+    IProductSupplierRepository CrearProductSupplierRepository();
 
 }

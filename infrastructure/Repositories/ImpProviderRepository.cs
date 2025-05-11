@@ -136,6 +136,7 @@ namespace SGCI_app.infrastructure.Repositories
         SELECT
             p.id           AS provider_id,
             t.nombre       AS nombre,
+            t.id AS id_tercero,
             p.dto    AS descuento,
             p.dia_pago     AS dia_pago
         FROM proveedor p
@@ -159,7 +160,8 @@ namespace SGCI_app.infrastructure.Repositories
                     Provider = new DtoProv
                     {
                         Descuento = reader.GetDouble(reader.GetOrdinal("descuento")),
-                        DiaPago = reader.GetInt32(reader.GetOrdinal("dia_pago"))
+                        DiaPago = reader.GetInt32(reader.GetOrdinal("dia_pago")),
+                        Tercero_Id = reader.GetString(reader.GetOrdinal("id_tercero"))
                     }
                     // Las otras propiedades (Apellidos, Email, Address, TipoDoc_id, etc.)
                     // permanecerán con sus valores por defecto o null
