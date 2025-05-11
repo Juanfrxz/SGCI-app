@@ -34,7 +34,7 @@ namespace SGCI_app.application.UI
                 Console.WriteLine("14. Gestión de Tipo Terceros");
                 Console.WriteLine("15. Gestión de Tipo Telefonos");
                 Console.WriteLine("16. Gestión de Compras");
-                Console.WriteLine("17. Gestión de Asociaciones Producto-Proveedor");
+                Console.WriteLine("17. Gestión de Ventas");
                 Console.WriteLine("0. Salir");
                 Console.Write("\nSeleccione una opción: ");
 
@@ -114,8 +114,8 @@ namespace SGCI_app.application.UI
                         purchaseMenu.ShowMenu();
                         break;
                     case "17":
-                        var prodprovMenu = new ProductSupplierMenu();
-                        prodprovMenu.ShowMenu();
+                        var saleMenu = new SaleMenu();
+                        saleMenu.ShowMenu();
                         break;
                     case "0":
                         Console.WriteLine("¡Hasta pronto!");

@@ -834,4 +834,321 @@ CREATE TRIGGER trg_stock_bajo
     FOR EACH ROW
     EXECUTE FUNCTION fn_crear_compra_automatica();
 
+CREATE OR REPLACE PROCEDURE sp_create_sale (
+    p_fecha DATE,
+    p_tercero_empleado_id TEXT,
+    p_tercero_cliente_id TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_empleado_id INTEGER;
+    v_cliente_id INTEGER;
+BEGIN
+    -- Obtener IDs reales de empleado y cliente desde sus tercero_id
+    SELECT id INTO v_empleado_id FROM empleado WHERE tercero_id = p_tercero_empleado_id;
+    SELECT id INTO v_cliente_id FROM cliente WHERE tercero_id = p_tercero_cliente_id;
+
+    -- Verificar si existen
+    IF v_empleado_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un empleado con el ID de tercero %', p_tercero_empleado_id;
+    END IF;
+    
+    IF v_cliente_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un cliente con el ID de tercero %', p_tercero_cliente_id;
+    END IF;
+
+    -- Insertar la venta
+    INSERT INTO venta (
+        fecha,
+        empleado_id,
+        cliente_id
+    ) VALUES (
+        p_fecha,
+        v_empleado_id,
+        v_cliente_id
+    );
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE sp_update_sale (
+    p_fact_id INTEGER,
+    p_fecha DATE,
+    p_tercero_empleado_id TEXT,
+    p_tercero_cliente_id TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_empleado_id INTEGER;
+    v_cliente_id INTEGER;
+BEGIN
+    -- Obtener IDs reales de empleado y cliente desde sus tercero_id
+    SELECT id INTO v_empleado_id FROM empleado WHERE tercero_id = p_tercero_empleado_id;
+    SELECT id INTO v_cliente_id FROM cliente WHERE tercero_id = p_tercero_cliente_id;
+
+    -- Verificar si existen
+    IF v_empleado_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un empleado con el ID de tercero %', p_tercero_empleado_id;
+    END IF;
+    
+    IF v_cliente_id IS NULL THEN
+        RAISE EXCEPTION 'No existe un cliente con el ID de tercero %', p_tercero_cliente_id;
+    END IF;
+
+    -- Actualizar la venta
+    UPDATE venta
+    SET 
+        fecha = p_fecha,
+        empleado_id = v_empleado_id,
+        cliente_id = v_cliente_id
+    WHERE fact_id = p_fact_id;
+END;
+$$;
+
+-- Trigger para actualizar el stock del producto al crear un detalle de venta
+CREATE OR REPLACE FUNCTION fn_actualizar_stock_venta()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Reducir stock al insertar un detalle de venta
+    UPDATE productos
+    SET 
+        stock = stock - NEW.cantidad,
+        updated_at = CURRENT_DATE
+    WHERE id = NEW.producto_id;
+    
+    -- Verificar si se necesita hacer una compra automática
+    -- (Esto se manejará por el trigger en la tabla productos)
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger
+DROP TRIGGER IF EXISTS trg_actualizar_stock_venta ON detalle_venta;
+CREATE TRIGGER trg_actualizar_stock_venta
+    AFTER INSERT ON detalle_venta
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_actualizar_stock_venta();
+
+-- Trigger para restaurar el stock al eliminar un detalle de venta
+CREATE OR REPLACE FUNCTION fn_restaurar_stock_venta()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Restaurar stock al eliminar un detalle de venta
+    UPDATE productos
+    SET 
+        stock = stock + OLD.cantidad,
+        updated_at = CURRENT_DATE
+    WHERE id = OLD.producto_id;
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger
+DROP TRIGGER IF EXISTS trg_restaurar_stock_venta ON detalle_venta;
+CREATE TRIGGER trg_restaurar_stock_venta
+    BEFORE DELETE ON detalle_venta
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_restaurar_stock_venta();
+
+
+
+insert into tipo_mov_caja (nombre, tipo) Values ("Compra tipo", "compra");
+insert into tipo_mov_caja (nombre, tipo) Values ("venta tipo", "venta");
+INSERT INTO sesion_caja (
+  abierto,
+  balance_apertura
+) VALUES (
+  NOW(),
+  1000.00
+);
+
+-- 1) Función para detalle_compra
+CREATE OR REPLACE FUNCTION fn_movimiento_desde_compra() 
+RETURNS trigger LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_total       NUMERIC;
+  v_tipo_id     INTEGER;
+  v_sesion_id   INTEGER;
+BEGIN
+  -- Calculamos el total de la línea (cantidad × valor unitario)
+  v_total := NEW.cantidad * NEW.valor;
+  
+  -- Obtenemos el tipo_mov_caja.id para 'Compra'
+  SELECT id INTO v_tipo_id
+    FROM tipo_mov_caja
+   WHERE LOWER(nombre) = 'compra'
+   LIMIT 1;
+
+  IF v_tipo_id IS NULL THEN
+    RAISE EXCEPTION 'Tipo de movimiento ''Compra'' no encontrado en tipo_mov_caja';
+  END IF;
+
+  -- Obtenemos la sesión abierta más reciente
+  SELECT id INTO v_sesion_id
+    FROM sesion_caja
+   WHERE cerrado IS NULL
+   ORDER BY abierto DESC
+   LIMIT 1;
+
+  IF v_sesion_id IS NULL THEN
+    RAISE EXCEPTION 'No hay sesión de caja abierta';
+  END IF;
+
+  -- Insertamos el movimiento
+  INSERT INTO mov_caja(tipo_mov_id, valor, concepto, tercero_id, sesion_id)
+  VALUES (
+    v_tipo_id,
+    v_total,
+    CONCAT('Compra línea ', NEW.id),
+    NULL,
+    v_sesion_id
+  );
+
+  RETURN NEW;
+END;
+$$;
+
+-- 2) Trigger para detalle_compra
+DROP TRIGGER IF EXISTS trg_mov_desde_compra ON detalle_compra;
+CREATE TRIGGER trg_mov_desde_compra
+AFTER INSERT ON detalle_compra
+FOR EACH ROW
+EXECUTE FUNCTION fn_movimiento_desde_compra();
+
+-- 1) Reconstruir función de compra con match flexible (%compra%)
+CREATE OR REPLACE FUNCTION fn_movimiento_desde_compra() 
+RETURNS trigger LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_total       NUMERIC;
+  v_tipo_id     INTEGER;
+  v_sesion_id   INTEGER;
+BEGIN
+  v_total := NEW.cantidad * NEW.valor;
+  
+  -- Match flexible: cualquier nombre que contenga 'compra' (ignore case)
+  SELECT id INTO v_tipo_id
+    FROM tipo_mov_caja
+   WHERE LOWER(nombre) LIKE '%compra%'
+   ORDER BY id LIMIT 1;
+  IF v_tipo_id IS NULL THEN
+    RAISE EXCEPTION 'Tipo de movimiento LIKE ''%%compra%%'' no encontrado';
+  END IF;
+
+  SELECT id INTO v_sesion_id
+    FROM sesion_caja
+   WHERE cerrado IS NULL
+   ORDER BY abierto DESC
+   LIMIT 1;
+  IF v_sesion_id IS NULL THEN
+    RAISE EXCEPTION 'No hay sesión de caja abierta';
+  END IF;
+
+  INSERT INTO mov_caja(tipo_mov_id, valor, concepto, tercero_id, sesion_id)
+  VALUES (
+    v_tipo_id,
+    v_total,
+    CONCAT('Compra línea ', NEW.id),
+    NULL,
+    v_sesion_id
+  );
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_mov_desde_compra ON detalle_compra;
+CREATE TRIGGER trg_mov_desde_compra
+AFTER INSERT ON detalle_compra
+FOR EACH ROW
+EXECUTE FUNCTION fn_movimiento_desde_compra();
+
+
+-- 2) Reconstruir función de venta con match flexible (%venta%)
+CREATE OR REPLACE FUNCTION fn_movimiento_desde_venta() 
+RETURNS trigger LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_total       NUMERIC;
+  v_tipo_id     INTEGER;
+  v_sesion_id   INTEGER;
+BEGIN
+  v_total := NEW.cantidad * NEW.valor;
+  
+  SELECT id INTO v_tipo_id
+    FROM tipo_mov_caja
+   WHERE LOWER(nombre) LIKE '%venta%'
+   ORDER BY id LIMIT 1;
+  IF v_tipo_id IS NULL THEN
+    RAISE EXCEPTION 'Tipo de movimiento LIKE ''%%venta%%'' no encontrado';
+  END IF;
+
+  SELECT id INTO v_sesion_id
+    FROM sesion_caja
+   WHERE cerrado IS NULL
+   ORDER BY abierto DESC
+   LIMIT 1;
+  IF v_sesion_id IS NULL THEN
+    RAISE EXCEPTION 'No hay sesión de caja abierta';
+  END IF;
+
+  INSERT INTO mov_caja(tipo_mov_id, valor, concepto, tercero_id, sesion_id)
+  VALUES (
+    v_tipo_id,
+    v_total,
+    CONCAT('Venta línea ', NEW.id),
+    NULL,
+    v_sesion_id
+  );
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_mov_desde_venta ON detalle_venta;
+CREATE TRIGGER trg_mov_desde_venta
+AFTER INSERT ON detalle_venta
+FOR EACH ROW
+EXECUTE FUNCTION fn_movimiento_desde_venta();
+
+
+-- 3) Función para actualizar el balance de sesión tras cada mov_caja
+CREATE OR REPLACE FUNCTION fn_actualizar_balance_sesion()
+RETURNS trigger LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_nombre      TEXT;
+  v_delta       NUMERIC;
+BEGIN
+  -- recuperamos el nombre del tipo
+  SELECT nombre INTO v_nombre
+    FROM tipo_mov_caja
+   WHERE id = NEW.tipo_mov_id;
+
+  IF LOWER(v_nombre) LIKE '%venta%' THEN
+    v_delta := NEW.valor;
+  ELSIF LOWER(v_nombre) LIKE '%compra%' THEN
+    v_delta := - NEW.valor;
+  ELSE
+    v_delta := 0;
+  END IF;
+
+  -- actualizamos balance_cierre sobre la sesión
+  UPDATE sesion_caja
+     SET balance_cierre = COALESCE(balance_cierre, balance_apertura) + v_delta
+   WHERE id = NEW.sesion_id;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_actualizar_balance ON mov_caja;
+CREATE TRIGGER trg_actualizar_balance
+AFTER INSERT ON mov_caja
+FOR EACH ROW
+EXECUTE FUNCTION fn_actualizar_balance_sesion();
+z
+
 ```

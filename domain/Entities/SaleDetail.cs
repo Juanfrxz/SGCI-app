@@ -11,6 +11,6 @@ namespace SGCI_app.domain.Entities
         public int FactId { get; set; }
         public string? Producto_Id { get; set; }
         public int Cantidad { get; set; }
-        public int Valor { get; set; }
+        public double Valor { get; set; }
     }
 }
