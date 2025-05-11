@@ -1,155 +1,130 @@
-// CashSessionMenu.cs
 using System;
 using SGCI_app.application.Services;
 using SGCI_app.domain.Entities;
 using SGCI_app.domain.Factory;
 using SGCI_app.infrastructure.postgres;
+using System.Linq;
 
 namespace SGCI_app.application.UI
 {
-    public class CashSessionMenu
+    public class CashSessionMenu : BaseMenu
     {
         private readonly CashSessionService _service;
 
-        public CashSessionMenu()
+        public CashSessionMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new CashSessionService(factory.CrearCashSessionRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE SESIONES DE CAJA ===");
+                ShowHeader("GESTIÓN DE SESIONES DE CAJA");
                 Console.WriteLine("1. Abrir Sesión");
                 Console.WriteLine("2. Cerrar Sesión");
                 Console.WriteLine("3. Listar Sesiones");
                 Console.WriteLine("4. Eliminar Sesión");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-                switch (input)
-                {
-                    case "1": AbrirSesion(); break;
-                    case "2": CerrarSesion(); break;
-                    case "3": ListarSesiones(); break;
-                    case "4": EliminarSesion(); break;
-                    case "0": return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
+                    case 1:
+                        AbrirSesion();
                         break;
+                    case 2:
+                        CerrarSesion();
+                        break;
+                    case 3:
+                        ListarSesiones();
+                        break;
+                    case 4:
+                        EliminarSesion();
+                        break;
+                    case 0:
+                        return;
                 }
             }
         }
 
         private void AbrirSesion()
         {
-            Console.Clear();
-            Console.WriteLine("=== ABRIR SESIÓN DE CAJA ===");
-            Console.Write("Balance de apertura: ");
-            if (!int.TryParse(Console.ReadLine(), out int balanceApertura))
-            {
-                Console.WriteLine("Balance inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ABRIR SESIÓN DE CAJA");
+            int balanceApertura = GetValidatedIntInput("Balance de apertura: ");
 
             try
             {
                 _service.CrearCashSession(balanceApertura);
-                Console.WriteLine("\nSesión abierta exitosamente.");
+                ShowSuccessMessage("Sesión abierta exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al abrir sesión: {ex.Message}");
+                ShowErrorMessage($"Error al abrir sesión: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void CerrarSesion()
         {
-            Console.Clear();
-            Console.WriteLine("=== CERRAR SESIÓN DE CAJA ===");
-            Console.Write("ID de sesión a cerrar: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("CERRAR SESIÓN DE CAJA");
+            int id = GetValidatedIntInput("ID de sesión a cerrar: ");
 
             try
             {
                 _service.CerrarCashSession(id);
-                Console.WriteLine("\nSesión cerrada exitosamente.");
+                ShowSuccessMessage("Sesión cerrada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al cerrar sesión: {ex.Message}");
+                ShowErrorMessage($"Error al cerrar sesión: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ListarSesiones()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE SESIONES DE CAJA ===\n");
+            ShowHeader("LISTA DE SESIONES DE CAJA");
             try
             {
-                var lista = _service.ObtenerTodasLasSessions();
-                foreach (var s in lista)
+                var sesiones = _service.ObtenerTodasLasSessions();
+                if (sesiones == null || !sesiones.Any())
                 {
-                    Console.WriteLine($"ID: {s.Id}, Apertura: {s.AperturaCaja}, Cierre: { (s.CierreCaja.HasValue ? s.CierreCaja.ToString() : "--") }, Balance Apertura: {s.BalanceApertura}, Balance Cierre: {s.BalaceCierre}");
+                    ShowInfoMessage("No hay sesiones registradas.");
                 }
+                else
+                {
+                    foreach (var s in sesiones)
+                    {
+                        Console.WriteLine($"ID: {s.Id}\tApertura: {s.AperturaCaja}\tCierre: {(s.CierreCaja.HasValue ? s.CierreCaja.ToString() : "--")}\tBalance Apertura: {s.BalanceApertura}\tBalance Cierre: {s.BalaceCierre}");
+                    }
+                }
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al listar sesiones: {ex.Message}");
+                ShowErrorMessage($"Error al listar sesiones: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void EliminarSesion()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR SESIÓN DE CAJA ===");
-            Console.Write("ID de sesión a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ELIMINAR SESIÓN DE CAJA");
+            int id = GetValidatedIntInput("ID de sesión a eliminar: ");
 
             try
             {
                 _service.EliminarCashSession(id);
-                Console.WriteLine("\nSesión eliminada exitosamente.");
+                ShowSuccessMessage("Sesión eliminada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al eliminar sesión: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar sesión: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
     }
 }

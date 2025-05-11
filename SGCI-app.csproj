@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Figgle" Version="0.5.1" />
     <PackageReference Include="MySql.Data" Version="9.3.0" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
   </ItemGroup>

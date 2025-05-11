@@ -1,180 +1,125 @@
 using System;
+using SGCI_app.application.services;
+using SGCI_app.application.Services;
 using SGCI_app.domain.Entities;
 using SGCI_app.domain.Factory;
 using SGCI_app.infrastructure.postgres;
-using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class CityMenu
+    public class CityMenu : BaseMenu
     {
         private readonly CityService _service;
 
-        public CityMenu()
+        public CityMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new CityService(factory.CrearCityRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE CIUDADES ===");
+                ShowHeader("GESTIÓN DE CIUDADES");
                 Console.WriteLine("1. Crear Ciudad");
                 Console.WriteLine("2. Listar Ciudades");
                 Console.WriteLine("3. Actualizar Ciudad");
                 Console.WriteLine("4. Eliminar Ciudad");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                
-                if (string.IsNullOrEmpty(input))
-                {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
 
-                switch (input)
+                switch (option)
                 {
-                    case "1":
+                    case 1:
                         CrearCiudad();
                         break;
-                    case "2":
+                    case 2:
                         ListarCiudades();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarCiudad();
                         break;
-                    case "4":
+                    case 4:
                         EliminarCiudad();
                         break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearCiudad()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVA CIUDAD ===");
-            
-            Console.Write("Nombre de la ciudad: ");
-            string? nombre = Console.ReadLine();
-            
-            Console.Write("ID de la región: ");
-            if (!int.TryParse(Console.ReadLine(), out int regionId))
-            {
-                Console.WriteLine("ID de región inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("CREAR NUEVA CIUDAD");
+            string nombre = GetValidatedInput("Nombre de la ciudad: ");
+            int regionId = GetValidatedIntInput("ID de la región: ");
 
             var ciudad = new City { Nombre = nombre, Region_Id = regionId };
-            
             try
             {
                 _service.CrearCity(ciudad);
-                Console.WriteLine("Ciudad creada exitosamente.");
+                ShowSuccessMessage("Ciudad creada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear la ciudad: {ex.Message}");
+                ShowErrorMessage($"Error al crear la ciudad: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void ListarCiudades()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE CIUDADES ===");
-            
+            ShowHeader("LISTA DE CIUDADES");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de ciudades completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar las ciudades: {ex.Message}");
+                ShowErrorMessage($"Error al listar las ciudades: {ex.Message}");
             }
-            
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarCiudad()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR CIUDAD ===");
-            
-            Console.Write("ID de la ciudad a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int ciudadId))
-            {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.Write("Nuevo nombre: ");
-            string? nuevoNombre = Console.ReadLine();
-            
-            Console.Write("Nuevo ID de región: ");
-            if (!int.TryParse(Console.ReadLine(), out int nuevaRegionId))
-            {
-                Console.WriteLine("ID de región inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ACTUALIZAR CIUDAD");
+            int ciudadId = GetValidatedIntInput("ID de la ciudad a actualizar: ");
+            string nuevoNombre = GetValidatedInput("Nuevo nombre: ");
+            int nuevaRegionId = GetValidatedIntInput("Nuevo ID de región: ");
 
             var ciudad = new City { Id = ciudadId, Nombre = nuevoNombre, Region_Id = nuevaRegionId };
-            
             try
             {
                 _service.ActualizarCity(ciudad);
-                Console.WriteLine("Ciudad actualizada exitosamente.");
+                ShowSuccessMessage("Ciudad actualizada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar la ciudad: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar la ciudad: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void EliminarCiudad()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR CIUDAD ===");
-            
-            Console.Write("ID de la ciudad a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int ciudadId))
-            {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
+            ShowHeader("ELIMINAR CIUDAD");
+            int ciudadId = GetValidatedIntInput("ID de la ciudad a eliminar: ");
+
             try
             {
                 _service.EliminarCity(ciudadId);
-                Console.WriteLine("Ciudad eliminada exitosamente.");
+                ShowSuccessMessage("Ciudad eliminada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar la ciudad: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar la ciudad: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
     }
-} 
+}

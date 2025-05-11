@@ -1,142 +1,82 @@
 using System;
+using System.Linq;
+using SGCI_app.domain.Entities;
 using SGCI_app.domain.DTO;
 using SGCI_app.domain.Factory;
 using SGCI_app.infrastructure.postgres;
+using SGCI_app.application.Services;
 using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class ClientMenu
+    public class ClientMenu : BaseMenu
     {
         private readonly ClientService _service;
 
-        public ClientMenu()
+        public ClientMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new ClientService(factory.CrearClientRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE CLIENTES DTO ===");
+                ShowHeader("GESTIÓN DE CLIENTES DTO");
                 Console.WriteLine("1. Crear Cliente DTO");
                 Console.WriteLine("2. Listar Clientes DTO");
                 Console.WriteLine("3. Actualizar Cliente DTO");
                 Console.WriteLine("4. Eliminar Cliente DTO");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1":
+                    case 1:
                         CrearDtoClient();
                         break;
-                    case "2":
+                    case 2:
                         ListarDtoClients();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarDtoClient();
                         break;
-                    case "4":
+                    case 4:
                         EliminarDtoClient();
                         break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearDtoClient()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVO CLIENTE DTO ===");
-            
+            ShowHeader("CREAR NUEVO CLIENTE DTO");
+
             // Datos de dirección
-            Console.WriteLine("\nDatos de dirección:");
-            Console.Write("Calle: ");
-            string? calle = Console.ReadLine();
-            
-            Console.Write("Número de edificio: ");
-            string? numeroEdificio = Console.ReadLine();
-            
-            Console.Write("Código postal: ");
-            string? codigoPostal = Console.ReadLine();
-            
-            Console.Write("ID de ciudad: ");
-            if (!int.TryParse(Console.ReadLine(), out int ciudadId))
-            {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Información adicional: ");
-            string? infoAdicional = Console.ReadLine();
+            string calle = GetValidatedInput("Calle: ");
+            string numeroEdificio = GetValidatedInput("Número de edificio: ");
+            string codigoPostal = GetValidatedInput("Código postal: ");
+            int ciudadId = GetValidatedIntInput("ID de ciudad: ");
+            string infoAdicional = GetValidatedInput("Información adicional: ", allowEmpty: true);
 
             // Datos personales
-            Console.WriteLine("\nDatos personales:");
-            Console.Write("Nombre: ");
-            string? nombre = Console.ReadLine();
-            
-            Console.Write("Apellidos: ");
-            string? apellidos = Console.ReadLine();
-            
-            Console.Write("Email: ");
-            string? email = Console.ReadLine();
-            
-            Console.Write("ID del tipo de tercero: ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoTerceroId))
-            {
-                Console.WriteLine("ID de tipo de tercero inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("ID del tipo de documento: ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoDocId))
-            {
-                Console.WriteLine("ID de tipo de documento inválido.");
-                Console.ReadKey();
-                return;
-            }
+            string nombre = GetValidatedInput("Nombre: ");
+            string apellidos = GetValidatedInput("Apellidos: ");
+            string email = GetValidatedInput("Email: ");
+            int tipoTerceroId = GetValidatedIntInput("ID del tipo de tercero: ");
+            int tipoDocId = GetValidatedIntInput("ID del tipo de documento: ");
 
             // Datos de cliente
-            Console.WriteLine("\nDatos de cliente:");
-            Console.Write("Fecha de nacimiento (YYYY-MM-DD): ");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime fechaNac))
-            {
-                Console.WriteLine("Fecha inválida.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Fecha de última compra (YYYY-MM-DD): ");
-            if (!DateTime.TryParse(Console.ReadLine(), out DateTime fechaUltCompra))
-            {
-                Console.WriteLine("Fecha inválida.");
-                Console.ReadKey();
-                return;
-            }
+            DateTime fechaNac = DateTime.Parse(GetValidatedInput("Fecha de nacimiento (YYYY-MM-DD): "));
+            DateTime fechaUltCompra = DateTime.Parse(GetValidatedInput("Fecha de última compra (YYYY-MM-DD): "));
 
-            var dtoClient = new DtoClient 
-            { 
+            var dtoClient = new DtoClient
+            {
                 Address = new DtoAddress
                 {
                     Calle = calle,
@@ -156,78 +96,47 @@ namespace SGCI_app.application.UI
                     FechaUltimaCompra = fechaUltCompra
                 }
             };
-            
+
             try
             {
                 _service.CrearClienteDto(dtoClient);
-                Console.WriteLine("Cliente DTO creado exitosamente.");
+                ShowSuccessMessage("Cliente DTO creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear el cliente DTO: {ex.Message}");
+                ShowErrorMessage($"Error al crear el cliente DTO: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void ListarDtoClients()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE CLIENTES DTO ===");
-            
+            ShowHeader("LISTA DE CLIENTES DTO");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de clientes completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar los clientes DTO: {ex.Message}");
+                ShowErrorMessage($"Error al listar los clientes DTO: {ex.Message}");
             }
-            
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarDtoClient()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR CLIENTE DTO ===");
-            
-            Console.Write("ID del cliente a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int clienteId))
-            {
-                Console.WriteLine("ID de cliente inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ACTUALIZAR CLIENTE DTO");
+            int clienteId = GetValidatedIntInput("ID del cliente a actualizar: ");
+            string nuevoNombre = GetValidatedInput("Nuevo nombre: ");
+            string nuevosApellidos = GetValidatedInput("Nuevos apellidos: ");
+            string nuevoEmail = GetValidatedInput("Nuevo email: ");
+            int nuevoTipoTerceroId = GetValidatedIntInput("Nuevo ID de tipo de tercero: ");
+            int nuevoTipoDocId = GetValidatedIntInput("Nuevo ID de tipo de documento: ");
 
-            Console.Write("Nuevo nombre: ");
-            string? nuevoNombre = Console.ReadLine();
-            
-            Console.Write("Nuevos apellidos: ");
-            string? nuevosApellidos = Console.ReadLine();
-            
-            Console.Write("Nuevo email: ");
-            string? nuevoEmail = Console.ReadLine();
-            
-            Console.Write("Nuevo ID de tipo de tercero: ");
-            if (!int.TryParse(Console.ReadLine(), out int nuevoTipoTerceroId))
+            var dtoClient = new DtoClient
             {
-                Console.WriteLine("ID de tipo de tercero inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Nuevo ID de tipo de documento: ");
-            if (!int.TryParse(Console.ReadLine(), out int nuevoTipoDocId))
-            {
-                Console.WriteLine("ID de tipo de documento inválido.");
-                Console.ReadKey();
-                return;
-            }
-
-            var dtoClient = new DtoClient 
-            { 
                 Id = clienteId,
                 Nombre = nuevoNombre,
                 Apellidos = nuevosApellidos,
@@ -235,44 +144,32 @@ namespace SGCI_app.application.UI
                 TipoTercero_id = nuevoTipoTerceroId,
                 TipoDoc_id = nuevoTipoDocId
             };
-            
+
             try
             {
                 _service.ActualizarDatosPersonalesCliente(clienteId, dtoClient);
-                Console.WriteLine("Cliente DTO actualizado exitosamente.");
+                ShowSuccessMessage("Cliente DTO actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar el cliente DTO: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar el cliente DTO: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void EliminarDtoClient()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR CLIENTE DTO ===");
-            
-            Console.Write("ID del cliente a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int clienteId))
-            {
-                Console.WriteLine("ID de cliente inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
+            ShowHeader("ELIMINAR CLIENTE DTO");
+            int clienteId = GetValidatedIntInput("ID del cliente a eliminar: ");
+
             try
             {
                 _service.EliminarCliente(clienteId);
-                Console.WriteLine("Cliente DTO eliminado exitosamente.");
+                ShowSuccessMessage("Cliente DTO eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar el cliente DTO: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar el cliente DTO: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
     }
-} 
+}

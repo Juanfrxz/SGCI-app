@@ -5,62 +5,55 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.application.UI
 {
-    public class CashMovementMenu
+    public class CashMovementMenu : BaseMenu
     {
         private readonly CashMovementService _service;
 
-        public CashMovementMenu()
+        public CashMovementMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new CashMovementService(factory.CrearCashMovementRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE MOVIMIENTOS DE CAJA ===");
+                ShowHeader("GESTIÓN DE MOVIMIENTOS DE CAJA");
                 Console.WriteLine("1. Listar Movimientos");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input))
-                {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 1);
 
-                switch (input)
+                switch (option)
                 {
-                    case "1": ListarMovimientos(); break;
-                    case "0": return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
+                    case 1:
+                        ListarMovimientos();
                         break;
+                    case 0:
+                        return;
                 }
             }
         }
 
         private void ListarMovimientos()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE MOVIMIENTOS DE CAJA ===\n");
+            ShowHeader("LISTA DE MOVIMIENTOS DE CAJA");
+
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado completado.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al listar movimientos: {ex.Message}");
+                ShowErrorMessage($"Error al listar movimientos: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
+            Console.WriteLine();
+            Console.Write("Presione cualquier tecla para continuar...");
+            Console.ReadKey(true);
         }
     }
 }
