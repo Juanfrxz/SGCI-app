@@ -1011,14 +1011,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
--- 2) Trigger para detalle_compra
-DROP TRIGGER IF EXISTS trg_mov_desde_compra ON detalle_compra;
-CREATE TRIGGER trg_mov_desde_compra
-AFTER INSERT ON detalle_compra
-FOR EACH ROW
-EXECUTE FUNCTION fn_movimiento_desde_compra();
-
 -- 1) Reconstruir función de compra con match flexible (%compra%)
 CREATE OR REPLACE FUNCTION fn_movimiento_desde_compra() 
 RETURNS trigger LANGUAGE plpgsql
@@ -1060,13 +1052,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_mov_desde_compra ON detalle_compra;
-CREATE TRIGGER trg_mov_desde_compra
-AFTER INSERT ON detalle_compra
-FOR EACH ROW
-EXECUTE FUNCTION fn_movimiento_desde_compra();
-
-
 -- 2) Reconstruir función de venta con match flexible (%venta%)
 CREATE OR REPLACE FUNCTION fn_movimiento_desde_venta() 
 RETURNS trigger LANGUAGE plpgsql
@@ -1106,13 +1091,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
-DROP TRIGGER IF EXISTS trg_mov_desde_venta ON detalle_venta;
-CREATE TRIGGER trg_mov_desde_venta
-AFTER INSERT ON detalle_venta
-FOR EACH ROW
-EXECUTE FUNCTION fn_movimiento_desde_venta();
-
 
 -- 3) Función para actualizar el balance de sesión tras cada mov_caja
 CREATE OR REPLACE FUNCTION fn_actualizar_balance_sesion()
