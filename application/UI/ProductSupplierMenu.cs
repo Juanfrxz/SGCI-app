@@ -6,154 +6,122 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.application.UI
 {
-    public class ProductSupplierMenu
+    public class ProductSupplierMenu : BaseMenu
     {
         private readonly ProductSupplierService _service;
 
-        public ProductSupplierMenu()
+        public ProductSupplierMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new ProductSupplierService(factory.CrearProductSupplierRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN PRODUCTOS_PROVEEDOR ===");
-                Console.WriteLine("1. Crear Asociación Producto-Proveedor");
-                Console.WriteLine("2. Listar Asociaciones");
-                Console.WriteLine("3. Actualizar Asociación");
-                Console.WriteLine("4. Eliminar Asociación");
+                ShowHeader("GESTIÓN DE PROVEEDORES DE PRODUCTOS");
+                Console.WriteLine("1. Crear Proveedor de Producto");
+                Console.WriteLine("2. Listar Proveedores de Productos");
+                Console.WriteLine("3. Actualizar Proveedor de Producto");
+                Console.WriteLine("4. Eliminar Proveedor de Producto");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-                switch (input)
-                {
-                    case "1": CrearAsociacion(); break;
-                    case "2": ListarAsociaciones(); break;
-                    case "3": ActualizarAsociacion(); break;
-                    case "4": EliminarAsociacion(); break;
-                    case "0": return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
+                    case 1:
+                        CrearProductSupplier();
                         break;
+                    case 2:
+                        ListarProductSuppliers();
+                        break;
+                    case 3:
+                        ActualizarProductSupplier();
+                        break;
+                    case 4:
+                        EliminarProductSupplier();
+                        break;
+                    case 0:
+                        return;
                 }
             }
         }
 
-        private void CrearAsociacion()
+        private void CrearProductSupplier()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR ASOCIACIÓN PRODUCTO-PROVEEDOR ===");
+            ShowHeader("CREAR PROVEEDOR DE PRODUCTO");
+            var productSupplier = new ProductSupplier();
 
-            Console.Write("ID del proveedor: ");
-            var terceroId = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(terceroId))
-            {
-                Console.WriteLine("ID de proveedor inválido."); Console.ReadKey(); return;
-            }
+            productSupplier.Tercero_Id = GetValidatedInput("ID del proveedor: ");
+            productSupplier.Producto_Id = GetValidatedInput("ID del producto: ");
 
-            Console.Write("ID del producto: ");
-            var productoId = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(productoId))
-            {
-                Console.WriteLine("ID de producto inválido."); Console.ReadKey(); return;
-            }
-
-            var entity = new ProductSupplier { Tercero_Id = terceroId, Producto_Id = productoId };
             try
             {
-                _service.CrearProductSupplier(entity);
-                Console.WriteLine("\nAsociación creada exitosamente.");
+                _service.CrearProductSupplier(productSupplier);
+                ShowSuccessMessage("Proveedor de producto creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al crear asociación: {ex.Message}");
+                ShowErrorMessage($"Error al crear el proveedor de producto: {ex.Message}");
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar..."); Console.ReadKey();
         }
 
-        private void ListarAsociaciones()
+        private void ListarProductSuppliers()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE ASOCIACIONES ===\n");
+            ShowHeader("LISTA DE PROVEEDORES DE PRODUCTOS");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de proveedores de productos completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al listar asociaciones: {ex.Message}");
+                ShowErrorMessage($"Error al obtener los proveedores de productos: {ex.Message}");
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar..."); Console.ReadKey();
         }
 
-        private void ActualizarAsociacion()
+        private void ActualizarProductSupplier()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR ASOCIACIÓN ===");
-            Console.Write("ID actual del proveedor: ");
-            var oldTercero = Console.ReadLine();
-            Console.Write("ID actual del producto: ");
-            var oldProd = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(oldTercero) || string.IsNullOrWhiteSpace(oldProd))
-            {
-                Console.WriteLine("IDs inválidos."); Console.ReadKey(); return;
-            }
-            Console.Write("Nuevo ID del proveedor: ");
-            var newTercero = Console.ReadLine();
-            Console.Write("Nuevo ID del producto: ");
-            var newProd = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(newTercero) || string.IsNullOrWhiteSpace(newProd))
-            {
-                Console.WriteLine("Nuevos IDs inválidos."); Console.ReadKey(); return;
-            }
-            var entity = new ProductSupplier { Tercero_Id = newTercero, Producto_Id = newProd };
+            ShowHeader("ACTUALIZAR PROVEEDOR DE PRODUCTO");
+            string oldTerceroId = GetValidatedInput("ID del proveedor a actualizar: ");
+            string oldProductoId = GetValidatedInput("ID del producto a actualizar: ");
+            
+            var productSupplier = new ProductSupplier();
+            productSupplier.Tercero_Id = GetValidatedInput("Nuevo ID del proveedor (dejar en blanco para mantener el actual): ", allowEmpty: true);
+            productSupplier.Producto_Id = GetValidatedInput("Nuevo ID del producto (dejar en blanco para mantener el actual): ", allowEmpty: true);
+
             try
             {
-                _service.ActualizarProductSupplier(oldTercero, oldProd, entity);
-                Console.WriteLine("\nAsociación actualizada exitosamente.");
+                _service.ActualizarProductSupplier(oldTerceroId, oldProductoId, productSupplier);
+                ShowSuccessMessage("Proveedor de producto actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al actualizar asociación: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar el proveedor de producto: {ex.Message}");
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar..."); Console.ReadKey();
         }
 
-        private void EliminarAsociacion()
+        private void EliminarProductSupplier()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR ASOCIACIÓN ===");
-            Console.Write("ID del proveedor: ");
-            var terceroId = Console.ReadLine();
-            Console.Write("ID del producto: ");
-            var productoId = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(terceroId) || string.IsNullOrWhiteSpace(productoId))
-            {
-                Console.WriteLine("IDs inválidos."); Console.ReadKey(); return;
-            }
+            ShowHeader("ELIMINAR PROVEEDOR DE PRODUCTO");
+            string terceroId = GetValidatedInput("ID del proveedor a eliminar: ");
+            string productoId = GetValidatedInput("ID del producto a eliminar: ");
+
             try
             {
                 _service.EliminarProductSupplier(terceroId, productoId);
-                Console.WriteLine("\nAsociación eliminada exitosamente.");
+                ShowSuccessMessage("Proveedor de producto eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al eliminar asociación: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar el proveedor de producto: {ex.Message}");
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar..."); Console.ReadKey();
         }
     }
 }
