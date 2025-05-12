@@ -14,6 +14,52 @@ namespace SGCI_app.application.Services
             _repository = repository;
         }
 
+        public void CrearMovimiento(CashMovement movimiento)
+        {
+            if (movimiento.Valor <= 0)
+                throw new ArgumentException("El valor del movimiento debe ser mayor que 0");
+
+            _repository.Crear(movimiento);
+        }
+
+        public void ActualizarMovimiento(CashMovement movimiento)
+        {
+            if (movimiento.Valor <= 0)
+                throw new ArgumentException("El valor del movimiento debe ser mayor que 0");
+
+            _repository.Actualizar(movimiento);
+        }
+
+        public void EliminarMovimiento(int id)
+        {
+            _repository.Eliminar(id);
+        }
+
+        public IEnumerable<CashMovement> ObtenerTodos()
+        {
+            return _repository.ObtenerTodos();
+        }
+
+        public IEnumerable<CashMovement> ObtenerPorSesion(int sesionId)
+        {
+            return _repository.ObtenerPorSesion(sesionId);
+        }
+
+        public IEnumerable<CashMovement> ObtenerPorFecha(DateTime fecha)
+        {
+            return _repository.ObtenerPorFecha(fecha);
+        }
+
+        public IEnumerable<CashMovement> ObtenerPorTipo(int tipoId)
+        {
+            return _repository.ObtenerPorTipo(tipoId);
+        }
+
+        public IEnumerable<CashMovement> ObtenerPorTercero(string terceroId)
+        {
+            return _repository.ObtenerPorTercero(terceroId);
+        }
+
         /// <summary>
         /// Muestra todos los movimientos de caja en consola.
         /// </summary>
