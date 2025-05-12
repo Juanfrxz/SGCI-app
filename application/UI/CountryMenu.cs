@@ -1,4 +1,6 @@
+using System;
 using SGCI_app.domain.Entities;
+using SGCI_app.domain.Factory;
 using SGCI_app.infrastructure.postgres;
 using SGCI_app.application.services;
 
@@ -68,7 +70,6 @@ namespace SGCI_app.application.UI
         private void ListarPaises()
         {
             ShowHeader("LISTA DE PAÍSES");
-
             try
             {
                 _service.MostrarTodos();

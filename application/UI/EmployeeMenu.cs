@@ -6,72 +6,53 @@ using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class EmployeeMenu
+    public class EmployeeMenu : BaseMenu
     {
         private readonly EmployeeService _service;
 
-        public EmployeeMenu()
+        public EmployeeMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new EmployeeService(factory.CrearEmployeeRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE EMPLEADOS ===");
+                ShowHeader("GESTIÓN DE EMPLEADOS");
                 Console.WriteLine("1. Crear Empleado");
                 Console.WriteLine("2. Listar Empleados");
                 Console.WriteLine("3. Actualizar Empleado");
                 Console.WriteLine("4. Eliminar Empleado");
-                Console.WriteLine("5. Gestión de Empleados");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1":
+                    case 1:
                         CrearEmpleado();
                         break;
-                    case "2":
+                    case 2:
                         ListarEmpleados();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarEmpleado();
                         break;
-                    case "4":
+                    case 4:
                         EliminarEmpleado();
                         break;
-                    case "5":
-                        var employeeMenu = new EmployeeMenu();
-                        employeeMenu.ShowMenu();
-                        break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearEmpleado()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVO EMPLEADO ===");
+            ShowHeader("CREAR NUEVO EMPLEADO");
             
             // Datos de dirección
             Console.WriteLine("\nDatos de dirección:");
@@ -87,8 +68,7 @@ namespace SGCI_app.application.UI
             Console.Write("ID de ciudad: ");
             if (!int.TryParse(Console.ReadLine(), out int ciudadId))
             {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de ciudad inválido.");
                 return;
             }
             
@@ -109,16 +89,14 @@ namespace SGCI_app.application.UI
             Console.Write("ID del tipo de tercero: ");
             if (!int.TryParse(Console.ReadLine(), out int tipoTerceroId))
             {
-                Console.WriteLine("ID de tipo de tercero inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de tipo de tercero inválido.");
                 return;
             }
             
             Console.Write("ID del tipo de documento: ");
             if (!int.TryParse(Console.ReadLine(), out int tipoDocId))
             {
-                Console.WriteLine("ID de tipo de documento inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de tipo de documento inválido.");
                 return;
             }
 
@@ -127,32 +105,28 @@ namespace SGCI_app.application.UI
             Console.Write("Fecha de ingreso (YYYY-MM-DD): ");
             if (!DateTime.TryParse(Console.ReadLine(), out DateTime fechaIngreso))
             {
-                Console.WriteLine("Fecha inválida.");
-                Console.ReadKey();
+                ShowErrorMessage("Fecha inválida.");
                 return;
             }
             
             Console.Write("Salario base: ");
             if (!double.TryParse(Console.ReadLine(), out double salarioBase))
             {
-                Console.WriteLine("Salario inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("Salario inválido.");
                 return;
             }
             
             Console.Write("ID de EPS: ");
             if (!int.TryParse(Console.ReadLine(), out int epsId))
             {
-                Console.WriteLine("ID de EPS inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de EPS inválido.");
                 return;
             }
             
             Console.Write("ID de ARL: ");
             if (!int.TryParse(Console.ReadLine(), out int arlId))
             {
-                Console.WriteLine("ID de ARL inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de ARL inválido.");
                 return;
             }
 
@@ -183,44 +157,39 @@ namespace SGCI_app.application.UI
             try
             {
                 _service.CrearEmpleado(empleado);
-                Console.WriteLine("Empleado creado exitosamente.");
+                ShowSuccessMessage("Empleado creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear el empleado: {ex.Message}");
+                ShowErrorMessage($"Error al crear el empleado: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void ListarEmpleados()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE EMPLEADOS ===");
-            
+            ShowHeader("LISTA DE EMPLEADOS");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de empleados completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar los empleados: {ex.Message}");
+                ShowErrorMessage($"Error al listar los empleados: {ex.Message}");
             }
-            
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarEmpleado()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR EMPLEADO ===");
+            ShowHeader("ACTUALIZAR EMPLEADO");
             
             Console.Write("ID del empleado a actualizar: ");
             if (!int.TryParse(Console.ReadLine(), out int empleadoId))
             {
-                Console.WriteLine("ID de empleado inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de empleado inválido.");
                 return;
             }
 
@@ -238,16 +207,14 @@ namespace SGCI_app.application.UI
             Console.Write("Nuevo ID del tipo de tercero: ");
             if (!int.TryParse(Console.ReadLine(), out int tipoTerceroId))
             {
-                Console.WriteLine("ID de tipo de tercero inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de tipo de tercero inválido.");
                 return;
             }
             
             Console.Write("Nuevo ID del tipo de documento: ");
             if (!int.TryParse(Console.ReadLine(), out int tipoDocId))
             {
-                Console.WriteLine("ID de tipo de documento inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de tipo de documento inválido.");
                 return;
             }
 
@@ -256,24 +223,21 @@ namespace SGCI_app.application.UI
             Console.Write("Nuevo salario base: ");
             if (!double.TryParse(Console.ReadLine(), out double salarioBase))
             {
-                Console.WriteLine("Salario inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("Salario inválido.");
                 return;
             }
             
             Console.Write("Nuevo ID de EPS: ");
             if (!int.TryParse(Console.ReadLine(), out int epsId))
             {
-                Console.WriteLine("ID de EPS inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de EPS inválido.");
                 return;
             }
             
             Console.Write("Nuevo ID de ARL: ");
             if (!int.TryParse(Console.ReadLine(), out int arlId))
             {
-                Console.WriteLine("ID de ARL inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de ARL inválido.");
                 return;
             }
 
@@ -295,40 +259,34 @@ namespace SGCI_app.application.UI
             try
             {
                 _service.ActualizarDatosEmpleado(empleadoId, empleado);
-                Console.WriteLine("Empleado actualizado exitosamente.");
+                ShowSuccessMessage("Empleado actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar el empleado: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar el empleado: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void EliminarEmpleado()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR EMPLEADO ===");
+            ShowHeader("ELIMINAR EMPLEADO");
             
             Console.Write("ID del empleado a eliminar: ");
             if (!int.TryParse(Console.ReadLine(), out int empleadoId))
             {
-                Console.WriteLine("ID de empleado inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de empleado inválido.");
                 return;
             }
             
             try
             {
                 _service.EliminarEmpleado(empleadoId);
-                Console.WriteLine("Empleado eliminado exitosamente.");
+                ShowSuccessMessage("Empleado eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar el empleado: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar el empleado: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
     }
 } 

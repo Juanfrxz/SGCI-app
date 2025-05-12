@@ -1,8 +1,8 @@
 using System;
-using SGCI_app.application.services;
 using SGCI_app.domain.Entities;
 using SGCI_app.domain.Factory;
 using SGCI_app.infrastructure.postgres;
+using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
@@ -22,10 +22,10 @@ namespace SGCI_app.application.UI
             while (true)
             {
                 ShowHeader("GESTIÓN DE TIPOS DE DOCUMENTO");
-                Console.WriteLine("1. Crear Tipo Documento");
-                Console.WriteLine("2. Listar Tipos Documento");
-                Console.WriteLine("3. Actualizar Tipo Documento");
-                Console.WriteLine("4. Eliminar Tipo Documento");
+                Console.WriteLine("1. Crear Tipo de Documento");
+                Console.WriteLine("2. Listar Tipos de Documento");
+                Console.WriteLine("3. Actualizar Tipo de Documento");
+                Console.WriteLine("4. Eliminar Tipo de Documento");
                 Console.WriteLine("0. Volver al menú principal");
                 DrawSeparator();
 
@@ -52,7 +52,7 @@ namespace SGCI_app.application.UI
 
         private void CrearTipoDocumento()
         {
-            ShowHeader("CREAR TIPO DE DOCUMENTO");
+            ShowHeader("CREAR NUEVO TIPO DE DOCUMENTO");
             string descripcion = GetValidatedInput("Descripción: ");
 
             var entity = new DocType { Descripcion = descripcion };
@@ -71,19 +71,18 @@ namespace SGCI_app.application.UI
         private void ListarTiposDocumento()
         {
             ShowHeader("LISTA DE TIPOS DE DOCUMENTO");
-
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de tipos de documento completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
                 ShowErrorMessage($"Error al listar tipos de documento: {ex.Message}");
             }
-
-            Console.WriteLine();
-            Console.Write("Presione cualquier tecla para continuar...");
-            Console.ReadKey(true);
         }
 
         private void ActualizarTipoDocumento()

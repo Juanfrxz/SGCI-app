@@ -6,192 +6,146 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.application.UI
 {
-    public class PromotionalPlanMenu
+    public class PromotionalPlanMenu : BaseMenu
     {
         private readonly PromotionalPlanService _service;
 
-        public PromotionalPlanMenu()
+        public PromotionalPlanMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new PromotionalPlanService(factory.CrearPromoPlanRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE PLANES PROMOCIONALES ===");
+                ShowHeader("GESTIÓN DE PLANES PROMOCIONALES");
                 Console.WriteLine("1. Crear Plan Promocional");
                 Console.WriteLine("2. Listar Planes Promocionales");
                 Console.WriteLine("3. Actualizar Plan Promocional");
                 Console.WriteLine("4. Eliminar Plan Promocional");
-                Console.WriteLine("0. Volver al Menú Principal");
-                Console.Write("\nSeleccione una opción: ");
+                Console.WriteLine("0. Volver al menú principal");
+                DrawSeparator();
 
-                var input = Console.ReadLine();
-
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1": CrearPlanPromocional(); break;
-                    case "2": ListarPlanesPromocionales(); break;
-                    case "3": ActualizarPlanPromocional(); break;
-                    case "4": EliminarPlanPromocional(); break;
-                    case "0": return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
+                    case 1:
+                        CrearPromotionalPlan();
                         break;
+                    case 2:
+                        ListarPromotionalPlans();
+                        break;
+                    case 3:
+                        ActualizarPromotionalPlan();
+                        break;
+                    case 4:
+                        EliminarPromotionalPlan();
+                        break;
+                    case 0:
+                        return;
                 }
             }
         }
 
-        private void CrearPlanPromocional()
+        private void CrearPromotionalPlan()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR PLAN PROMOCIONAL ===");
-
+            ShowHeader("CREAR PLAN PROMOCIONAL");
             var plan = new PromotionalPlan();
-            Console.Write("Nombre del plan: ");
-            plan.Nombre = Console.ReadLine();
 
-            Console.Write("ID del técnico: ");
-            if (int.TryParse(Console.ReadLine(), out int tecnicoId))
-                plan.Tecnico_Id = tecnicoId;
-
-            Console.Write("Descuento (%): ");
-            if (double.TryParse(Console.ReadLine(), out double descuento))
-                plan.Descuento = descuento;
-
-            Console.Write("Fecha de inicio (YYYY-MM-DD): ");
-            if (DateTime.TryParse(Console.ReadLine(), out DateTime inicio))
-                plan.Inicio = inicio;
-
-            Console.Write("Fecha de fin (YYYY-MM-DD): ");
-            if (DateTime.TryParse(Console.ReadLine(), out DateTime fin))
-                plan.Fin = fin;
-
-            Console.Write("Datos extra: ");
-            plan.Datos_Extra = Console.ReadLine();
+            plan.Id = GetValidatedIntInput("ID del plan: ");
+            plan.Nombre = GetValidatedInput("Nombre del plan: ");
+            plan.Datos_Extra = GetValidatedInput("Descripción: ");
+            plan.Descuento = GetValidatedIntInput("Descuento (%): ");
+            plan.Inicio = GetValidatedDateInput("Fecha de inicio (YYYY-MM-DD): ");
+            plan.Fin = GetValidatedDateInput("Fecha de fin (YYYY-MM-DD): ");
 
             try
             {
                 _service.CreatePromotionalPlan(plan);
-                Console.WriteLine("\nPlan promocional creado exitosamente.");
+                ShowSuccessMessage("Plan promocional creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al crear el plan: {ex.Message}");
+                ShowErrorMessage($"Error al crear el plan promocional: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
-        private void ListarPlanesPromocionales()
+        private void ListarPromotionalPlans()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE PLANES PROMOCIONALES ===\n");
-
+            ShowHeader("LISTA DE PLANES PROMOCIONALES");
             try
             {
-                // El método GetAllPromotionalPlans ahora imprime directamente
                 _service.GetAllPromotionalPlans();
+                ShowInfoMessage("Listado de planes promocionales completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al obtener los planes: {ex.Message}");
+                ShowErrorMessage($"Error al obtener los planes promocionales: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
-        private void ActualizarPlanPromocional()
+        private void ActualizarPromotionalPlan()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR PLAN PROMOCIONAL ===");
-
-            Console.Write("Ingrese el ID del plan a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID inválido.");
-                Console.ReadKey();
-                return;
-            }
-
+            ShowHeader("ACTUALIZAR PLAN PROMOCIONAL");
+            int id = GetValidatedIntInput("ID del plan a actualizar: ");
             var plan = new PromotionalPlan { Id = id };
-            Console.Write("Nuevo nombre (dejar en blanco para mantener el actual): ");
-            plan.Nombre = Console.ReadLine();
 
-            Console.Write("Nuevo ID del técnico (0 para mantener el actual): ");
-            if (int.TryParse(Console.ReadLine(), out int tecnicoId))
-                plan.Tecnico_Id = tecnicoId;
+            plan.Nombre = GetValidatedInput("Nuevo nombre (dejar en blanco para mantener el actual): ", allowEmpty: true);
+            plan.Datos_Extra = GetValidatedInput("Nueva descripción (dejar en blanco para mantener la actual): ", allowEmpty: true);
+            
+            string descuentoInput = GetValidatedInput("Nuevo descuento % (dejar en blanco para mantener el actual): ", allowEmpty: true);
+            if (int.TryParse(descuentoInput, out int descuento)) plan.Descuento = descuento;
 
-            Console.Write("Nuevo descuento (0 para mantener el actual): ");
-            if (double.TryParse(Console.ReadLine(), out double descuento))
-                plan.Descuento = descuento;
+            string fechaInicioInput = GetValidatedInput("Nueva fecha de inicio (YYYY-MM-DD, dejar en blanco para mantener la actual): ", allowEmpty: true);
+            if (!string.IsNullOrEmpty(fechaInicioInput) && DateTime.TryParse(fechaInicioInput, out DateTime fechaInicio))
+                plan.Inicio = fechaInicio;
 
-            Console.Write("Nueva fecha de inicio (YYYY-MM-DD, dejar en blanco para mantener la actual): ");
-            var inicioInput = Console.ReadLine();
-            if (!string.IsNullOrEmpty(inicioInput) && DateTime.TryParse(inicioInput, out DateTime inicio))
-                plan.Inicio = inicio;
-
-            Console.Write("Nueva fecha de fin (YYYY-MM-DD, dejar en blanco para mantener la actual): ");
-            var finInput = Console.ReadLine();
-            if (!string.IsNullOrEmpty(finInput) && DateTime.TryParse(finInput, out DateTime fin))
-                plan.Fin = fin;
-
-            Console.Write("Nuevos datos extra (dejar en blanco para mantener los actuales): ");
-            plan.Datos_Extra = Console.ReadLine();
+            string fechaFinInput = GetValidatedInput("Nueva fecha de fin (YYYY-MM-DD, dejar en blanco para mantener la actual): ", allowEmpty: true);
+            if (!string.IsNullOrEmpty(fechaFinInput) && DateTime.TryParse(fechaFinInput, out DateTime fechaFin))
+                plan.Fin = fechaFin;
 
             try
             {
                 _service.UpdatePromotionalPlan(plan);
-                Console.WriteLine("\nPlan promocional actualizado exitosamente.");
+                ShowSuccessMessage("Plan promocional actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al actualizar el plan: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar el plan promocional: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
-        private void EliminarPlanPromocional()
+        private void EliminarPromotionalPlan()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR PLAN PROMOCIONAL ===");
-
-            Console.Write("Ingrese el ID del plan a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ELIMINAR PLAN PROMOCIONAL");
+            int id = GetValidatedIntInput("ID del plan a eliminar: ");
 
             try
             {
                 _service.DeletePromotionalPlan(id);
-                Console.WriteLine("\nPlan promocional eliminado exitosamente.");
+                ShowSuccessMessage("Plan promocional eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al eliminar el plan: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar el plan promocional: {ex.Message}");
             }
+        }
 
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
+        private DateTime GetValidatedDateInput(string prompt)
+        {
+            while (true)
+            {
+                string input = GetValidatedInput(prompt);
+                if (DateTime.TryParse(input, out DateTime date))
+                    return date;
+                ShowErrorMessage("Formato de fecha inválido. Use YYYY-MM-DD.");
+            }
         }
     }
 }
