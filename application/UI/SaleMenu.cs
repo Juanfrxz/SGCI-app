@@ -6,12 +6,12 @@ using Npgsql;
 
 namespace SGCI_app.application.UI
 {
-    public class SaleMenu
+    public class SaleMenu : BaseMenu
     {
         private readonly SaleService _saleService;
         private readonly SaleDetailService _saleDetailService;
 
-        public SaleMenu()
+        public SaleMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=juan1374;Pooling=true";
             var factory = new ConexDBFactory(connStr);
@@ -19,150 +19,99 @@ namespace SGCI_app.application.UI
             _saleDetailService = new SaleDetailService(factory.CrearSaleDetailRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE VENTAS ===");
+                ShowHeader("GESTIÓN DE VENTAS");
                 Console.WriteLine("1. Listar Ventas");
                 Console.WriteLine("2. Crear Nueva Venta");
                 Console.WriteLine("3. Actualizar Venta");
                 Console.WriteLine("4. Eliminar Venta");
                 Console.WriteLine("5. Gestionar Detalles de Venta");
                 Console.WriteLine("0. Volver al Menú Principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-
-                try
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 5);
+                switch (option)
                 {
-                    switch (input)
-                    {
-                        case "1":
-                            ListarVentas();
-                            break;
-                        case "2":
-                            CrearVenta();
-                            break;
-                        case "3":
-                            ActualizarVenta();
-                            break;
-                        case "4":
-                            EliminarVenta();
-                            break;
-                        case "5":
-                            GestionarDetallesVenta();
-                            break;
-                        case "0":
-                            return;
-                        default:
-                            Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                            Console.ReadKey();
-                            break;
-                    }
-                }
-                catch (PostgresException ex)
-                {
-                    Console.WriteLine($"\nError de base de datos: {ex.Message}");
-                    Console.WriteLine("Detalles: " + ex.Detail);
-                    Console.WriteLine("\nPresione cualquier tecla para continuar...");
-                    Console.ReadKey();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"\nError inesperado: {ex.Message}");
-                    Console.WriteLine("\nPresione cualquier tecla para continuar...");
-                    Console.ReadKey();
+                    case 1:
+                        ListarVentas();
+                        break;
+                    case 2:
+                        CrearVenta();
+                        break;
+                    case 3:
+                        ActualizarVenta();
+                        break;
+                    case 4:
+                        EliminarVenta();
+                        break;
+                    case 5:
+                        GestionarDetallesVenta();
+                        break;
+                    case 0:
+                        return;
                 }
             }
         }
 
         private void ListarVentas()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTADO DE VENTAS ===");
+            ShowHeader("LISTADO DE VENTAS");
             try
             {
                 _saleService.MostrarTodos();
+                ShowInfoMessage("Listado de ventas completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al listar ventas: {ex.Message}");
+                ShowErrorMessage($"Error al listar ventas: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void CrearVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVA VENTA ===");
+            ShowHeader("CREAR NUEVA VENTA");
             
             try
             {
                 var venta = new Sale();
                 
-                Console.Write("Fecha (YYYY-MM-DD): ");
-                if (DateTime.TryParse(Console.ReadLine(), out DateTime fecha))
-                {
-                    venta.Fecha = fecha;
-                }
-                else
-                {
-                    throw new Exception("Formato de fecha inválido. Use YYYY-MM-DD");
-                }
-                
-                Console.Write("ID del Empleado (tercero_id): ");
-                venta.TerceroEmpleado_Id = Console.ReadLine();
-                if (string.IsNullOrEmpty(venta.TerceroEmpleado_Id))
-                {
-                    throw new Exception("El ID del empleado no puede estar vacío");
-                }
-                
-                Console.Write("ID del Cliente (tercero_id): ");
-                venta.TerceroCliente_Id = Console.ReadLine();
-                if (string.IsNullOrEmpty(venta.TerceroCliente_Id))
-                {
-                    throw new Exception("El ID del cliente no puede estar vacío");
-                }
+                venta.Fecha = GetValidatedDateInput("Fecha (YYYY-MM-DD): ");
+                venta.TerceroEmpleado_Id = GetValidatedInput("ID del Empleado (tercero_id): ");
+                venta.TerceroCliente_Id = GetValidatedInput("ID del Cliente (tercero_id): ");
 
                 _saleService.CrearVenta(venta);
-                Console.WriteLine("Venta creada exitosamente.");
+                ShowSuccessMessage("Venta creada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al crear la venta: {ex.Message}");
+                ShowErrorMessage($"Error al crear la venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR VENTA ===");
+            ShowHeader("ACTUALIZAR VENTA");
             
             try
             {
-                Console.Write("Ingrese el ID de la venta a actualizar: ");
-                if (!int.TryParse(Console.ReadLine(), out int id))
-                {
-                    throw new Exception("ID inválido. Debe ser un número.");
-                }
-
+                int id = GetValidatedIntInput("Ingrese el ID de la venta a actualizar: ");
                 var venta = new Sale { FactId = id };
                 
-                Console.Write("Nueva Fecha (YYYY-MM-DD, dejar en blanco para mantener la actual): ");
-                var fechaInput = Console.ReadLine();
+                string fechaInput = GetValidatedInput("Nueva Fecha (YYYY-MM-DD, dejar en blanco para mantener la actual): ", allowEmpty: true);
                 if (!string.IsNullOrEmpty(fechaInput))
                 {
                     if (DateTime.TryParse(fechaInput, out DateTime fecha))
@@ -175,53 +124,43 @@ namespace SGCI_app.application.UI
                     }
                 }
                 
-                Console.Write("Nuevo ID del Empleado (tercero_id, dejar en blanco para mantener el actual): ");
-                venta.TerceroEmpleado_Id = Console.ReadLine();
+                string empleadoInput = GetValidatedInput("Nuevo ID del Empleado (tercero_id, dejar en blanco para mantener el actual): ", allowEmpty: true);
+                if (!string.IsNullOrEmpty(empleadoInput)) venta.TerceroEmpleado_Id = empleadoInput;
                 
-                Console.Write("Nuevo ID del Cliente (tercero_id, dejar en blanco para mantener el actual): ");
-                venta.TerceroCliente_Id = Console.ReadLine();
+                string clienteInput = GetValidatedInput("Nuevo ID del Cliente (tercero_id, dejar en blanco para mantener el actual): ", allowEmpty: true);
+                if (!string.IsNullOrEmpty(clienteInput)) venta.TerceroCliente_Id = clienteInput;
 
                 _saleService.ActualizarVenta(venta);
-                Console.WriteLine("Venta actualizada exitosamente.");
+                ShowSuccessMessage("Venta actualizada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al actualizar la venta: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar la venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void EliminarVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR VENTA ===");
+            ShowHeader("ELIMINAR VENTA");
             
             try
             {
-                Console.Write("Ingrese el ID de la venta a eliminar: ");
-                if (!int.TryParse(Console.ReadLine(), out int id))
-                {
-                    throw new Exception("ID inválido. Debe ser un número.");
-                }
-
+                int id = GetValidatedIntInput("Ingrese el ID de la venta a eliminar: ");
                 _saleService.EliminarVenta(id);
-                Console.WriteLine("Venta eliminada exitosamente.");
+                ShowSuccessMessage("Venta eliminada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al eliminar la venta: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar la venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void GestionarDetallesVenta()
@@ -233,13 +172,22 @@ namespace SGCI_app.application.UI
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al gestionar detalles de venta: {ex.Message}");
+                ShowErrorMessage($"Error al gestionar detalles de venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
-                Console.WriteLine("\nPresione cualquier tecla para continuar...");
-                Console.ReadKey();
+            }
+        }
+
+        private DateTime GetValidatedDateInput(string prompt)
+        {
+            while (true)
+            {
+                string input = GetValidatedInput(prompt);
+                if (DateTime.TryParse(input, out DateTime date))
+                    return date;
+                ShowErrorMessage("Formato de fecha inválido. Use YYYY-MM-DD.");
             }
         }
     }

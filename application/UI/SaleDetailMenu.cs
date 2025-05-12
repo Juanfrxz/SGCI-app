@@ -5,126 +5,81 @@ using Npgsql;
 
 namespace SGCI_app.application.UI
 {
-    public class SaleDetailMenu
+    public class SaleDetailMenu : BaseMenu
     {
         private readonly SaleDetailService _saleDetailService;
 
-        public SaleDetailMenu(SaleDetailService saleDetailService)
+        public SaleDetailMenu(SaleDetailService saleDetailService) : base(showIntro: false)
         {
             _saleDetailService = saleDetailService;
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE DETALLES DE VENTA ===");
+                ShowHeader("GESTIÓN DE DETALLES DE VENTA");
                 Console.WriteLine("1. Listar Detalles de Venta");
                 Console.WriteLine("2. Agregar Detalle de Venta");
                 Console.WriteLine("3. Actualizar Detalle de Venta");
                 Console.WriteLine("4. Eliminar Detalle de Venta");
                 Console.WriteLine("0. Volver al Menú de Ventas");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-
-                try
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    switch (input)
-                    {
-                        case "1":
-                            ListarDetallesVenta();
-                            break;
-                        case "2":
-                            AgregarDetalleVenta();
-                            break;
-                        case "3":
-                            ActualizarDetalleVenta();
-                            break;
-                        case "4":
-                            EliminarDetalleVenta();
-                            break;
-                        case "0":
-                            return;
-                        default:
-                            Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                            Console.ReadKey();
-                            break;
-                    }
-                }
-                catch (PostgresException ex)
-                {
-                    Console.WriteLine($"\nError de base de datos: {ex.Message}");
-                    Console.WriteLine("Detalles: " + ex.Detail);
-                    Console.WriteLine("\nPresione cualquier tecla para continuar...");
-                    Console.ReadKey();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"\nError inesperado: {ex.Message}");
-                    Console.WriteLine("\nPresione cualquier tecla para continuar...");
-                    Console.ReadKey();
+                    case 1:
+                        ListarDetallesVenta();
+                        break;
+                    case 2:
+                        AgregarDetalleVenta();
+                        break;
+                    case 3:
+                        ActualizarDetalleVenta();
+                        break;
+                    case 4:
+                        EliminarDetalleVenta();
+                        break;
+                    case 0:
+                        return;
                 }
             }
         }
 
         private void ListarDetallesVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTADO DE DETALLES DE VENTA ===");
+            ShowHeader("LISTADO DE DETALLES DE VENTA");
             try
             {
                 _saleDetailService.MostrarTodos();
+                ShowInfoMessage("Listado de detalles de venta completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al listar detalles de venta: {ex.Message}");
+                ShowErrorMessage($"Error al listar detalles de venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void AgregarDetalleVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== AGREGAR DETALLE DE VENTA ===");
+            ShowHeader("AGREGAR DETALLE DE VENTA");
             
             try
             {
                 var detalle = new SaleDetail();
                 
-                Console.Write("ID de la Venta: ");
-                if (!int.TryParse(Console.ReadLine(), out int factId))
-                {
-                    throw new Exception("ID de venta inválido. Debe ser un número.");
-                }
-                detalle.FactId = factId;
-                
-                Console.Write("ID del Producto: ");
-                detalle.Producto_Id = Console.ReadLine();
-                if (string.IsNullOrEmpty(detalle.Producto_Id))
-                {
-                    throw new Exception("El ID del producto no puede estar vacío");
-                }
-                
-                Console.Write("Cantidad: ");
-                if (!int.TryParse(Console.ReadLine(), out int cantidad) || cantidad <= 0)
-                {
-                    throw new Exception("La cantidad debe ser un número positivo");
-                }
-                detalle.Cantidad = cantidad;
-                
-                Console.Write("Valor Unitario: ");
-                if (!double.TryParse(Console.ReadLine(), out double valor) || valor <= 0)
-                {
-                    throw new Exception("El valor debe ser un número positivo");
-                }
-                detalle.Valor = valor;
+                detalle.FactId = GetValidatedIntInput("ID de la Venta: ");
+                detalle.Producto_Id = GetValidatedInput("ID del Producto: ");
+                detalle.Cantidad = GetValidatedIntInput("Cantidad: ");
+                detalle.Valor = GetValidatedDoubleInput("Valor Unitario: ");
 
                 Console.WriteLine("\nResumen del detalle de venta:");
                 Console.WriteLine($"ID de Venta: {detalle.FactId}");
@@ -133,45 +88,35 @@ namespace SGCI_app.application.UI
                 Console.WriteLine($"Valor Unitario: {detalle.Valor:C}");
                 Console.WriteLine($"Total: {detalle.Cantidad * detalle.Valor:C}");
                 
-                Console.Write("\n¿Desea confirmar la operación? (S/N): ");
-                if (Console.ReadLine()?.ToUpper() != "S")
+                if (GetValidatedInput("¿Desea confirmar la operación? (S/N): ").ToUpper() != "S")
                 {
-                    Console.WriteLine("Operación cancelada.");
+                    ShowInfoMessage("Operación cancelada.");
                     return;
                 }
 
                 _saleDetailService.CrearDetalleVenta(detalle);
-                Console.WriteLine("Detalle de venta agregado exitosamente.");
+                ShowSuccessMessage("Detalle de venta agregado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al agregar detalle de venta: {ex.Message}");
+                ShowErrorMessage($"Error al agregar detalle de venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarDetalleVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR DETALLE DE VENTA ===");
+            ShowHeader("ACTUALIZAR DETALLE DE VENTA");
             
             try
             {
-                Console.Write("Ingrese el ID del detalle de venta a actualizar: ");
-                if (!int.TryParse(Console.ReadLine(), out int id))
-                {
-                    throw new Exception("ID inválido. Debe ser un número.");
-                }
-
+                int id = GetValidatedIntInput("Ingrese el ID del detalle de venta a actualizar: ");
                 var detalle = new SaleDetail { Id = id };
                 
-                Console.Write("Nueva Cantidad (dejar en blanco para mantener la actual): ");
-                var cantidadInput = Console.ReadLine();
+                string cantidadInput = GetValidatedInput("Nueva Cantidad (dejar en blanco para mantener la actual): ", allowEmpty: true);
                 if (!string.IsNullOrEmpty(cantidadInput))
                 {
                     if (!int.TryParse(cantidadInput, out int cantidad) || cantidad <= 0)
@@ -181,8 +126,7 @@ namespace SGCI_app.application.UI
                     detalle.Cantidad = cantidad;
                 }
                 
-                Console.Write("Nuevo Valor Unitario (dejar en blanco para mantener el actual): ");
-                var valorInput = Console.ReadLine();
+                string valorInput = GetValidatedInput("Nuevo Valor Unitario (dejar en blanco para mantener el actual): ", allowEmpty: true);
                 if (!string.IsNullOrEmpty(valorInput))
                 {
                     if (!double.TryParse(valorInput, out double valor) || valor <= 0)
@@ -202,61 +146,62 @@ namespace SGCI_app.application.UI
                     Console.WriteLine($"Nuevo Valor Unitario: {detalle.Valor:C}");
                 }
                 
-                Console.Write("\n¿Desea confirmar la operación? (S/N): ");
-                if (Console.ReadLine()?.ToUpper() != "S")
+                if (GetValidatedInput("¿Desea confirmar la operación? (S/N): ").ToUpper() != "S")
                 {
-                    Console.WriteLine("Operación cancelada.");
+                    ShowInfoMessage("Operación cancelada.");
                     return;
                 }
 
                 _saleDetailService.ActualizarDetalleVenta(detalle);
-                Console.WriteLine("Detalle de venta actualizado exitosamente.");
+                ShowSuccessMessage("Detalle de venta actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al actualizar detalle de venta: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar detalle de venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void EliminarDetalleVenta()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR DETALLE DE VENTA ===");
+            ShowHeader("ELIMINAR DETALLE DE VENTA");
             
             try
             {
-                Console.Write("Ingrese el ID del detalle de venta a eliminar: ");
-                if (!int.TryParse(Console.ReadLine(), out int id))
-                {
-                    throw new Exception("ID inválido. Debe ser un número.");
-                }
+                int id = GetValidatedIntInput("Ingrese el ID del detalle de venta a eliminar: ");
 
-                Console.Write("\n¿Está seguro que desea eliminar este detalle de venta? (S/N): ");
-                if (Console.ReadLine()?.ToUpper() != "S")
+                if (GetValidatedInput("¿Está seguro que desea eliminar este detalle de venta? (S/N): ").ToUpper() != "S")
                 {
-                    Console.WriteLine("Operación cancelada.");
+                    ShowInfoMessage("Operación cancelada.");
                     return;
                 }
 
                 _saleDetailService.EliminarDetalleVenta(id);
-                Console.WriteLine("Detalle de venta eliminado exitosamente.");
+                ShowSuccessMessage("Detalle de venta eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al eliminar detalle de venta: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar detalle de venta: {ex.Message}");
                 if (ex.InnerException != null)
                 {
-                    Console.WriteLine($"Error interno: {ex.InnerException.Message}");
+                    ShowErrorMessage($"Error interno: {ex.InnerException.Message}");
                 }
             }
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
+        }
+
+        private double GetValidatedDoubleInput(string prompt)
+        {
+            while (true)
+            {
+                string input = GetValidatedInput(prompt);
+                if (double.TryParse(input, out double value) && value > 0)
+                    return value;
+                ShowErrorMessage("El valor debe ser un número positivo.");
+            }
         }
     }
 } 
+ 

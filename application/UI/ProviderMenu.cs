@@ -6,134 +6,74 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.application.UI
 {
-    public class ProviderMenu
+    public class ProviderMenu : BaseMenu
     {
         private readonly ProviderService _service;
 
-        public ProviderMenu()
+        public ProviderMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new ProviderService(factory.CrearProviderRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE PROVEEDORES ===");
+                ShowHeader("GESTIÓN DE PROVEEDORES");
                 Console.WriteLine("1. Crear Proveedor");
                 Console.WriteLine("2. Listar Proveedores");
                 Console.WriteLine("3. Actualizar Proveedor");
                 Console.WriteLine("4. Eliminar Proveedor");
-                Console.WriteLine("0. Volver al Menú Principal");
-                Console.Write("\nSeleccione una opción: ");
+                Console.WriteLine("0. Volver al menú principal");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1":
+                    case 1:
                         CrearProveedor();
                         break;
-                    case "2":
+                    case 2:
                         ListarProveedores();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarProveedor();
                         break;
-                    case "4":
+                    case 4:
                         EliminarProveedor();
                         break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearProveedor()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVO PROVEEDOR ===");
+            ShowHeader("CREAR NUEVO PROVEEDOR");
             
             // Datos de dirección
             Console.WriteLine("\nDatos de dirección:");
-            Console.Write("Calle: ");
-            string? calle = Console.ReadLine();
-            
-            Console.Write("Número de edificio: ");
-            string? numeroEdificio = Console.ReadLine();
-            
-            Console.Write("Código postal: ");
-            string? codigoPostal = Console.ReadLine();
-            
-            Console.Write("ID de ciudad: ");
-            if (!int.TryParse(Console.ReadLine(), out int ciudadId))
-            {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Información adicional: ");
-            string? infoAdicional = Console.ReadLine();
+            string calle = GetValidatedInput("Calle: ");
+            string numeroEdificio = GetValidatedInput("Número de edificio: ");
+            string codigoPostal = GetValidatedInput("Código postal: ");
+            int ciudadId = GetValidatedIntInput("ID de ciudad: ");
+            string infoAdicional = GetValidatedInput("Información adicional: ", allowEmpty: true);
 
             // Datos personales
             Console.WriteLine("\nDatos personales:");
-            Console.Write("Nombre: ");
-            string? nombre = Console.ReadLine();
-            
-            Console.Write("Apellidos: ");
-            string? apellidos = Console.ReadLine();
-            
-            Console.Write("Email: ");
-            string? email = Console.ReadLine();
-            
-            Console.Write("ID del tipo de tercero: ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoTerceroId))
-            {
-                Console.WriteLine("ID de tipo de tercero inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("ID del tipo de documento: ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoDocId))
-            {
-                Console.WriteLine("ID de tipo de documento inválido.");
-                Console.ReadKey();
-                return;
-            }
+            string nombre = GetValidatedInput("Nombre: ");
+            string apellidos = GetValidatedInput("Apellidos: ");
+            string email = GetValidatedInput("Email: ");
+            int tipoTerceroId = GetValidatedIntInput("ID del tipo de tercero: ");
+            int tipoDocId = GetValidatedIntInput("ID del tipo de documento: ");
 
             // Datos de proveedor
             Console.WriteLine("\nDatos de proveedor:");
-            Console.Write("Descuento (%): ");
-            if (!double.TryParse(Console.ReadLine(), out double descuento))
-            {
-                Console.WriteLine("Descuento inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Día de pago: ");
-            if (!int.TryParse(Console.ReadLine(), out int diaPago))
-            {
-                Console.WriteLine("Día de pago inválido.");
-                Console.ReadKey();
-                return;
-            }
+            double descuento = GetValidatedDoubleInput("Descuento (%): ");
+            int diaPago = GetValidatedIntInput("Día de pago: ");
 
             var proveedor = new DtoProvider 
             { 
@@ -160,27 +100,23 @@ namespace SGCI_app.application.UI
             try
             {
                 _service.CreateProvider(proveedor);
-                Console.WriteLine("Proveedor creado exitosamente.");
+                ShowSuccessMessage("Proveedor creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear el proveedor: {ex.Message}");
+                ShowErrorMessage($"Error al crear el proveedor: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void ListarProveedores()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE PROVEEDORES ===");
-            
+            ShowHeader("LISTA DE PROVEEDORES");
             try
             {
                 var proveedores = _service.GetAllProviders();
                 if (proveedores.Count == 0)
                 {
-                    Console.WriteLine("No hay proveedores registrados.");
+                    ShowInfoMessage("No hay proveedores registrados.");
                 }
                 else
                 {
@@ -194,73 +130,34 @@ namespace SGCI_app.application.UI
                         Console.WriteLine("------------------------");
                     }
                 }
+                ShowInfoMessage("Listado de proveedores completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar los proveedores: {ex.Message}");
+                ShowErrorMessage($"Error al listar los proveedores: {ex.Message}");
             }
-            
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarProveedor()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR PROVEEDOR ===");
-            
-            Console.Write("ID del proveedor a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int proveedorId))
-            {
-                Console.WriteLine("ID de proveedor inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ACTUALIZAR PROVEEDOR");
+            int proveedorId = GetValidatedIntInput("ID del proveedor a actualizar: ");
 
             // Datos personales
             Console.WriteLine("\nDatos personales:");
-            Console.Write("Nuevo nombre: ");
-            string? nombre = Console.ReadLine();
-            
-            Console.Write("Nuevos apellidos: ");
-            string? apellidos = Console.ReadLine();
-            
-            Console.Write("Nuevo email: ");
-            string? email = Console.ReadLine();
-            
-            Console.Write("Nuevo ID del tipo de tercero: ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoTerceroId))
-            {
-                Console.WriteLine("ID de tipo de tercero inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Nuevo ID del tipo de documento: ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoDocId))
-            {
-                Console.WriteLine("ID de tipo de documento inválido.");
-                Console.ReadKey();
-                return;
-            }
+            string nombre = GetValidatedInput("Nuevo nombre (dejar en blanco para mantener el actual): ", allowEmpty: true);
+            string apellidos = GetValidatedInput("Nuevos apellidos (dejar en blanco para mantener los actuales): ", allowEmpty: true);
+            string email = GetValidatedInput("Nuevo email (dejar en blanco para mantener el actual): ", allowEmpty: true);
+            int tipoTerceroId = GetValidatedIntInput("Nuevo ID del tipo de tercero: ");
+            int tipoDocId = GetValidatedIntInput("Nuevo ID del tipo de documento: ");
 
             // Datos de proveedor
             Console.WriteLine("\nDatos de proveedor:");
-            Console.Write("Nuevo descuento (%): ");
-            if (!double.TryParse(Console.ReadLine(), out double descuento))
-            {
-                Console.WriteLine("Descuento inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
-            Console.Write("Nuevo día de pago: ");
-            if (!int.TryParse(Console.ReadLine(), out int diaPago))
-            {
-                Console.WriteLine("Día de pago inválido.");
-                Console.ReadKey();
-                return;
-            }
+            double descuento = GetValidatedDoubleInput("Nuevo descuento (%): ");
+            int diaPago = GetValidatedIntInput("Nuevo día de pago: ");
 
             var proveedor = new DtoProvider 
             { 
@@ -279,40 +176,39 @@ namespace SGCI_app.application.UI
             try
             {
                 _service.UpdateProvider(proveedorId, proveedor);
-                Console.WriteLine("Proveedor actualizado exitosamente.");
+                ShowSuccessMessage("Proveedor actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar el proveedor: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar el proveedor: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void EliminarProveedor()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR PROVEEDOR ===");
-            
-            Console.Write("ID del proveedor a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int proveedorId))
-            {
-                Console.WriteLine("ID de proveedor inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ELIMINAR PROVEEDOR");
+            int proveedorId = GetValidatedIntInput("ID del proveedor a eliminar: ");
             
             try
             {
                 _service.DeleteProvider(proveedorId);
-                Console.WriteLine("Proveedor eliminado exitosamente.");
+                ShowSuccessMessage("Proveedor eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar el proveedor: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar el proveedor: {ex.Message}");
             }
-            
-            Console.ReadKey();
+        }
+
+        private double GetValidatedDoubleInput(string prompt)
+        {
+            while (true)
+            {
+                string input = GetValidatedInput(prompt);
+                if (double.TryParse(input, out double value))
+                    return value;
+                ShowErrorMessage("Por favor, ingrese un número válido.");
+            }
         }
     }
 } 
