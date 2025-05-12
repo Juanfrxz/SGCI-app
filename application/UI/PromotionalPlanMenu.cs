@@ -57,10 +57,13 @@ namespace SGCI_app.application.UI
 
             plan.Id = GetValidatedIntInput("ID del plan: ");
             plan.Nombre = GetValidatedInput("Nombre del plan: ");
-            plan.Datos_Extra = GetValidatedInput("Descripción: ");
+
+            plan.Tecnico_Id = GetValidatedIntInput("ID del técnico: ");
+
             plan.Descuento = GetValidatedIntInput("Descuento (%): ");
             plan.Inicio = GetValidatedDateInput("Fecha de inicio (YYYY-MM-DD): ");
             plan.Fin = GetValidatedDateInput("Fecha de fin (YYYY-MM-DD): ");
+            plan.Datos_Extra = GetValidatedInput("Descripción: ");
 
             try
             {
@@ -72,7 +75,6 @@ namespace SGCI_app.application.UI
                 ShowErrorMessage($"Error al crear el plan promocional: {ex.Message}");
             }
         }
-
         private void ListarPromotionalPlans()
         {
             ShowHeader("LISTA DE PLANES PROMOCIONALES");
