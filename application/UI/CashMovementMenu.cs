@@ -78,7 +78,7 @@ namespace SGCI_app.application.UI
                 movimiento.TipoMovimiento_Id = GetValidatedIntInput("ID del tipo de movimiento: ");
                 movimiento.Valor = GetValidatedIntInput("Valor: ");
                 movimiento.Concepto = GetValidatedInput("Concepto (opcional): ", allowEmpty: true);
-                movimiento.Tercero_Id = GetValidatedInput("ID del tercero (opcional): ", allowEmpty: true);
+                movimiento.Tercero_Id = GetValidatedInput("ID del tercero: ", allowEmpty: true);
                 movimiento.Sesion_Id = GetValidatedIntInput("ID de la sesión: ");
 
                 _service.CrearMovimiento(movimiento);
