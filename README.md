@@ -1011,14 +1011,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
--- 2) Trigger para detalle_compra
-DROP TRIGGER IF EXISTS trg_mov_desde_compra ON detalle_compra;
-CREATE TRIGGER trg_mov_desde_compra
-AFTER INSERT ON detalle_compra
-FOR EACH ROW
-EXECUTE FUNCTION fn_movimiento_desde_compra();
-
 -- 1) Reconstruir función de compra con match flexible (%compra%)
 CREATE OR REPLACE FUNCTION fn_movimiento_desde_compra() 
 RETURNS trigger LANGUAGE plpgsql
@@ -1060,13 +1052,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_mov_desde_compra ON detalle_compra;
-CREATE TRIGGER trg_mov_desde_compra
-AFTER INSERT ON detalle_compra
-FOR EACH ROW
-EXECUTE FUNCTION fn_movimiento_desde_compra();
-
-
 -- 2) Reconstruir función de venta con match flexible (%venta%)
 CREATE OR REPLACE FUNCTION fn_movimiento_desde_venta() 
 RETURNS trigger LANGUAGE plpgsql
@@ -1107,13 +1092,6 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_mov_desde_venta ON detalle_venta;
-CREATE TRIGGER trg_mov_desde_venta
-AFTER INSERT ON detalle_venta
-FOR EACH ROW
-EXECUTE FUNCTION fn_movimiento_desde_venta();
-
-
 -- 3) Función para actualizar el balance de sesión tras cada mov_caja
 CREATE OR REPLACE FUNCTION fn_actualizar_balance_sesion()
 RETURNS trigger LANGUAGE plpgsql
@@ -1149,6 +1127,182 @@ CREATE TRIGGER trg_actualizar_balance
 AFTER INSERT ON mov_caja
 FOR EACH ROW
 EXECUTE FUNCTION fn_actualizar_balance_sesion();
-z
+
+-- Funciones, Triggers y Procedimientos para el Sistema de Movimientos de Caja
+
+-- Función para actualizar el saldo de la sesión
+CREATE OR REPLACE FUNCTION actualizar_saldo_sesion()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_saldo INTEGER;
+BEGIN
+    -- Calcular el nuevo saldo sumando todos los movimientos de la sesión
+    SELECT COALESCE(SUM(
+        CASE 
+            WHEN tm.tipo = 'INGRESO' THEN m.valor
+            WHEN tm.tipo = 'EGRESO' THEN -m.valor
+            ELSE 0
+        END
+    ), 0) INTO v_saldo
+    FROM mov_caja m
+    JOIN tipo_mov_caja tm ON m.tipo_mov_id = tm.id
+    WHERE m.sesion_id = COALESCE(NEW.sesion_id, OLD.sesion_id);
+
+    -- Actualizar el saldo en la sesión
+    UPDATE sesion_caja
+    SET balance_cierre = balance_apertura + v_saldo
+    WHERE id = COALESCE(NEW.sesion_id, OLD.sesion_id);
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para actualizar el saldo de la sesión
+CREATE TRIGGER tr_actualizar_saldo_sesion
+AFTER INSERT OR UPDATE OR DELETE ON mov_caja
+FOR EACH ROW
+EXECUTE FUNCTION actualizar_saldo_sesion();
+
+-- Función para validar el valor del movimiento
+CREATE OR REPLACE FUNCTION validar_valor_movimiento()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.valor <= 0 THEN
+        RAISE EXCEPTION 'El valor del movimiento debe ser mayor que 0';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para validar el valor del movimiento
+CREATE TRIGGER tr_validar_valor_movimiento
+BEFORE INSERT OR UPDATE ON mov_caja
+FOR EACH ROW
+EXECUTE FUNCTION validar_valor_movimiento();
+
+-- Función para obtener movimientos por sesión
+CREATE OR REPLACE FUNCTION obtener_movimientos_por_sesion(p_sesion_id INTEGER)
+RETURNS TABLE (
+    id INTEGER,
+    fecha TIMESTAMP,
+    tipo_movimiento_id INTEGER,
+    valor INTEGER,
+    concepto VARCHAR,
+    tercero_id VARCHAR,
+    sesion_id INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT m.id, m.fecha, m.tipo_mov_id, m.valor, m.concepto, m.tercero_id, m.sesion_id
+    FROM mov_caja m
+    WHERE m.sesion_id = p_sesion_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para obtener el saldo actual de una sesión
+CREATE OR REPLACE FUNCTION obtener_saldo_sesion(p_sesion_id INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    v_saldo INTEGER;
+BEGIN
+    SELECT COALESCE(SUM(
+        CASE 
+            WHEN tm.tipo = 'INGRESO' THEN m.valor
+            WHEN tm.tipo = 'EGRESO' THEN -m.valor
+            ELSE 0
+        END
+    ), 0) INTO v_saldo
+    FROM mov_caja m
+    JOIN tipo_mov_caja tm ON m.tipo_mov_id = tm.id
+    WHERE m.sesion_id = p_sesion_id;
+
+    RETURN v_saldo;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Procedimiento para crear un movimiento de caja
+CREATE OR REPLACE PROCEDURE crear_movimiento_caja(
+    p_fecha TIMESTAMP,
+    p_tipo_mov_id INTEGER,
+    p_valor INTEGER,
+    p_concepto VARCHAR,
+    p_tercero_id VARCHAR,
+    p_sesion_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Validar que el valor sea positivo
+    IF p_valor <= 0 THEN
+        RAISE EXCEPTION 'El valor del movimiento debe ser mayor que 0';
+    END IF;
+
+    -- Validar que la sesión exista y esté abierta
+    IF NOT EXISTS (SELECT 1 FROM sesion_caja WHERE id = p_sesion_id AND abierto = true) THEN
+        RAISE EXCEPTION 'La sesión no existe o está cerrada';
+    END IF;
+
+    -- Insertar el movimiento
+    INSERT INTO mov_caja (fecha, tipo_mov_id, valor, concepto, tercero_id, sesion_id)
+    VALUES (p_fecha, p_tipo_mov_id, p_valor, p_concepto, p_tercero_id, p_sesion_id);
+END;
+$$;
+
+-- Procedimiento para actualizar un movimiento de caja
+CREATE OR REPLACE PROCEDURE actualizar_movimiento_caja(
+    p_id INTEGER,
+    p_fecha TIMESTAMP,
+    p_tipo_mov_id INTEGER,
+    p_valor INTEGER,
+    p_concepto VARCHAR,
+    p_tercero_id VARCHAR,
+    p_sesion_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Validar que el valor sea positivo
+    IF p_valor <= 0 THEN
+        RAISE EXCEPTION 'El valor del movimiento debe ser mayor que 0';
+    END IF;
+
+    -- Validar que la sesión exista y esté abierta
+    IF NOT EXISTS (SELECT 1 FROM sesion_caja WHERE id = p_sesion_id AND abierto = true) THEN
+        RAISE EXCEPTION 'La sesión no existe o está cerrada';
+    END IF;
+
+    -- Actualizar el movimiento
+    UPDATE mov_caja
+    SET fecha = p_fecha,
+        tipo_mov_id = p_tipo_mov_id,
+        valor = p_valor,
+        concepto = p_concepto,
+        tercero_id = p_tercero_id,
+        sesion_id = p_sesion_id
+    WHERE id = p_id;
+END;
+$$;
+
+-- Procedimiento para eliminar un movimiento de caja
+CREATE OR REPLACE PROCEDURE eliminar_movimiento_caja(p_id INTEGER)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_sesion_id INTEGER;
+BEGIN
+    -- Obtener la sesión del movimiento
+    SELECT sesion_id INTO v_sesion_id
+    FROM mov_caja
+    WHERE id = p_id;
+
+    -- Validar que la sesión esté abierta
+    IF NOT EXISTS (SELECT 1 FROM sesion_caja WHERE id = v_sesion_id AND abierto = true) THEN
+        RAISE EXCEPTION 'No se puede eliminar el movimiento porque la sesión está cerrada';
+    END IF;
+
+    -- Eliminar el movimiento
+    DELETE FROM mov_caja WHERE id = p_id;
+END;
+$$;
 
 ```

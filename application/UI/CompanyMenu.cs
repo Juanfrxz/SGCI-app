@@ -6,67 +6,53 @@ using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class CompanyMenu
+    public class CompanyMenu : BaseMenu
     {
         private readonly CompanyService _service;
 
-        public CompanyMenu()
+        public CompanyMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new CompanyService(factory.CrearCompanyRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE EMPRESAS ===");
+                ShowHeader("GESTIÓN DE EMPRESAS");
                 Console.WriteLine("1. Crear Empresa");
                 Console.WriteLine("2. Listar Empresas");
                 Console.WriteLine("3. Actualizar Empresa");
                 Console.WriteLine("4. Eliminar Empresa");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1":
+                    case 1:
                         CrearCompany();
                         break;
-                    case "2":
+                    case 2:
                         ListarCompanies();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarCompany();
                         break;
-                    case "4":
+                    case 4:
                         EliminarCompany();
                         break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearCompany()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVA EMPRESA ===");
+            ShowHeader("CREAR NUEVA EMPRESA");
             
             Console.Write("ID (opcional, presione Enter para omitir): ");
             string? id = Console.ReadLine();
@@ -92,8 +78,7 @@ namespace SGCI_app.application.UI
             Console.Write("ID de Ciudad: ");
             if (!int.TryParse(Console.ReadLine(), out int ciudadId))
             {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de ciudad inválido.");
                 return;
             }
             
@@ -108,8 +93,7 @@ namespace SGCI_app.application.UI
             {
                 if (!DateTime.TryParse(fechaStr, out DateTime fecha))
                 {
-                    Console.WriteLine("Fecha inválida.");
-                    Console.ReadKey();
+                    ShowErrorMessage("Fecha inválida.");
                     return;
                 }
                 fechaRegistro = fecha;
@@ -133,45 +117,40 @@ namespace SGCI_app.application.UI
             try
             {
                 _service.CrearCompany(company);
-                Console.WriteLine("Empresa creada exitosamente.");
+                ShowSuccessMessage("Empresa creada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear la empresa: {ex.Message}");
+                ShowErrorMessage($"Error al crear la empresa: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void ListarCompanies()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE EMPRESAS ===");
-            
+            ShowHeader("LISTA DE EMPRESAS");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de empresas completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar las empresas: {ex.Message}");
+                ShowErrorMessage($"Error al listar las empresas: {ex.Message}");
             }
-            
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarCompany()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR EMPRESA ===");
+            ShowHeader("ACTUALIZAR EMPRESA");
             
             Console.Write("ID de la empresa a actualizar: ");
             string? id = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(id))
             {
-                Console.WriteLine("El ID es requerido.");
-                Console.ReadKey();
+                ShowErrorMessage("El ID es requerido.");
                 return;
             }
             
@@ -195,8 +174,7 @@ namespace SGCI_app.application.UI
             Console.Write("Nuevo ID de ciudad: ");
             if (!int.TryParse(Console.ReadLine(), out int nuevaCiudadId))
             {
-                Console.WriteLine("ID de ciudad inválido.");
-                Console.ReadKey();
+                ShowErrorMessage("ID de ciudad inválido.");
                 return;
             }
             
@@ -211,8 +189,7 @@ namespace SGCI_app.application.UI
             {
                 if (!DateTime.TryParse(fechaStr, out DateTime fecha))
                 {
-                    Console.WriteLine("Fecha inválida.");
-                    Console.ReadKey();
+                    ShowErrorMessage("Fecha inválida.");
                     return;
                 }
                 nuevaFechaRegistro = fecha;
@@ -236,41 +213,35 @@ namespace SGCI_app.application.UI
             try
             {
                 _service.ActualizarCompany(company);
-                Console.WriteLine("Empresa actualizada exitosamente.");
+                ShowSuccessMessage("Empresa actualizada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar la empresa: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar la empresa: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void EliminarCompany()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR EMPRESA ===");
+            ShowHeader("ELIMINAR EMPRESA");
             
             Console.Write("ID de la empresa a eliminar: ");
             string? id = Console.ReadLine();
             if (string.IsNullOrWhiteSpace(id))
             {
-                Console.WriteLine("El ID es requerido.");
-                Console.ReadKey();
+                ShowErrorMessage("El ID es requerido.");
                 return;
             }
             
             try
             {
                 _service.EliminarCompany(id);
-                Console.WriteLine("Empresa eliminada exitosamente.");
+                ShowSuccessMessage("Empresa eliminada exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar la empresa: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar la empresa: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
     }
-} 
+}

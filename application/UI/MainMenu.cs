@@ -6,125 +6,215 @@ using SGCI_app.infrastructure.postgres;
 
 namespace SGCI_app.application.UI
 {
-    public class MainMenu
+    public class MainMenu : BaseMenu
     {
+        private readonly string[] menuOptions = new string[]
+        {
+            "Gestión de Países",
+            "Gestión de Regiones",
+            "Gestión de Ciudades",
+            "Gestión de Clientes",
+            "Gestión de Empleados",
+            "Gestión de Proveedores",
+            "Gestión de Planes Promocionales",
+            "Gestión de EPS",
+            "Gestión de ARL",
+            "Gestión de Empresas",
+            "Gestión de Productos",
+            "Gestión de Asociaciones Plan-Producto",
+            "Gestión de Tipos de Documentos",
+            "Gestión de Tipo Terceros",
+            "Gestión de Tipo Telefonos",
+            "Gestión de Compras",
+            "Gestión de Ventas",
+            "Gestión de Tipos de Movimiento de Caja",
+            "Gestión de Sesiones de Caja",
+            "Gestión de Movimientos de Caja"
+        };
+
+        private const int OptionsPerPage = 10;
+        private const int ColumnsPerPage = 2;
+        private const int OptionsPerColumn = 5;
+
         public MainMenu()
         {
         }
 
-        public void ShowMenu()
+        private void DisplayMenuPage(int page)
         {
+            ShowHeader("MENÚ PRINCIPAL");
+            
+            int startIndex = page * OptionsPerPage;
+            int endIndex = Math.Min(startIndex + OptionsPerPage, menuOptions.Length);
+
+            // Calculate column width based on the longest option
+            int columnWidth = menuOptions.Max(opt => opt.Length) + 5;
+
+            for (int i = 0; i < OptionsPerColumn; i++)
+            {
+                int leftIndex = startIndex + i;
+                int rightIndex = startIndex + i + OptionsPerColumn;
+
+                string leftOption = leftIndex < endIndex ? $"{leftIndex + 1,2}. {menuOptions[leftIndex]}" : "";
+                string rightOption = rightIndex < endIndex ? $"{rightIndex + 1,2}. {menuOptions[rightIndex]}" : "";
+
+                Console.Write(leftOption.PadRight(columnWidth));
+                if (!string.IsNullOrEmpty(rightOption))
+                {
+                    Console.WriteLine(rightOption);
+                }
+                else
+                {
+                    Console.WriteLine();
+                }
+            }
+
+            Console.WriteLine("\n0.  Salir");
+            if (menuOptions.Length > OptionsPerPage)
+            {
+                Console.WriteLine($"N.  Siguiente página");
+                Console.WriteLine($"P.  Página anterior");
+            }
+            
+            DrawSeparator();
+            Console.Write("\nSeleccione una opción: ");
+        }
+
+        public override void ShowMenu()
+        {
+            int currentPage = 0;
+            int totalPages = (int)Math.Ceiling(menuOptions.Length / (double)OptionsPerPage);
+
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== MENÚ PRINCIPAL ===");
-                Console.WriteLine("1. Gestión de Países");
-                Console.WriteLine("2. Gestión de Regiones");
-                Console.WriteLine("3. Gestión de Ciudades");
-                Console.WriteLine("4. Gestión de Clientes");
-                Console.WriteLine("5. Gestión de Empleados");
-                Console.WriteLine("6. Gestión de Proveedores");
-                Console.WriteLine("7. Gestión de Planes Promocionales");
-                Console.WriteLine("8. Gestión de EPS");
-                Console.WriteLine("9. Gestión de ARL");
-                Console.WriteLine("10. Gestión de Empresas");
-                Console.WriteLine("11. Gestion de Productos");
-                Console.WriteLine("12. Gestión de Asociaciones Plan-Producto");
-                Console.WriteLine("13. Gestión de Tipos de Documentos");
-                Console.WriteLine("14. Gestión de Tipo Terceros");
-                Console.WriteLine("15. Gestión de Tipo Telefonos");
-                Console.WriteLine("16. Gestión de Compras");
-                Console.WriteLine("17. Gestión de Ventas");
-                Console.WriteLine("0. Salir");
-                Console.Write("\nSeleccione una opción: ");
+                DisplayMenuPage(currentPage);
 
-                string? input = Console.ReadLine();
+                string? input = Console.ReadLine()?.ToUpper();
                 
                 if (string.IsNullOrEmpty(input))
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
+                    ShowErrorMessage("Por favor, ingrese una opción válida.");
                     continue;
                 }
 
-                switch (input)
+                if (input == "N" && currentPage < totalPages - 1)
                 {
-                    case "1":
-                        var countryMenu = new CountryMenu();
-                        countryMenu.ShowMenu();
-                        break;
-                    case "2":
-                        var regionMenu = new RegionMenu();
-                        regionMenu.ShowMenu();
-                        break;
-                    case "3":
-                        var cityMenu = new CityMenu();
-                        cityMenu.ShowMenu();
-                        break;
-                    case "4":
-                        var dtoClientMenu = new ClientMenu();
-                        dtoClientMenu.ShowMenu();
-                        break;
-                    case "5":
-                        var employeeMenu = new EmployeeMenu();
-                        employeeMenu.ShowMenu();
-                        break;
-                    case "6":
-                        var providerMenu = new ProviderMenu();
-                        providerMenu.ShowMenu();
-                        break;
-                    case "7":
-                        var promotionalPlanMenu = new PromotionalPlanMenu();
-                        promotionalPlanMenu.ShowMenu();
-                        break;
-                    case "8":
-                        var epsMenu = new EpsMenu();
-                        epsMenu.ShowMenu();
-                        break;
-                    case "9":
-                        var arlMenu = new ArlMenu();
-                        arlMenu.ShowMenu();
-                        break;
-                    case "10":
-                        var companyMenu = new CompanyMenu();
-                        companyMenu.ShowMenu();
-                        break;
-                    case "11":
-                        var productMenu = new ProductMenu();
-                        productMenu.ShowMenu();
-                        break;
-                    case "12":
-                        var promoplanMenu = new PromotionalPlanProductMenu();
-                        promoplanMenu.ShowMenu();
-                        break;
-                    case "13":
-                        var doctypeMenu = new DocTypeMenu();
-                        doctypeMenu.ShowMenu();
-                        break;
-                    case "14":
-                        var tipotercerosMenu = new ThirdPartyTypeMenu();
-                        tipotercerosMenu.ShowMenu();
-                        break;
-                    case "15":
-                        var tipotelefonosMenu = new PhoneTypeMenu();
-                        tipotelefonosMenu.ShowMenu();
-                        break;
-                    case "16":
-                        var purchaseMenu = new PurchaseMenu();
-                        purchaseMenu.ShowMenu();
-                        break;
-                    case "17":
-                        var saleMenu = new SaleMenu();
-                        saleMenu.ShowMenu();
-                        break;
-                    case "0":
-                        Console.WriteLine("¡Hasta pronto!");
-                        return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
+                    currentPage++;
+                    continue;
                 }
+                else if (input == "P" && currentPage > 0)
+                {
+                    currentPage--;
+                    continue;
+                }
+
+                if (!int.TryParse(input, out int option))
+                {
+                    ShowErrorMessage("Opción no válida.");
+                    continue;
+                }
+
+                if (option == 0)
+                {
+                    ShowSuccessMessage("¡Gracias por usar SGCI! ¡Hasta pronto!");
+                    return;
+                }
+
+                if (option < 1 || option > menuOptions.Length)
+                {
+                    ShowErrorMessage("Opción no válida.");
+                    continue;
+                }
+
+                // Execute the selected option
+                ExecuteOption(option);
+            }
+        }
+
+        private void ExecuteOption(int option)
+        {
+            switch (option)
+            {
+                case 1:
+                    var countryMenu = new CountryMenu();
+                    countryMenu.ShowMenu();
+                    break;
+                case 2:
+                    var regionMenu = new RegionMenu();
+                    regionMenu.ShowMenu();
+                    break;
+                case 3:
+                    var cityMenu = new CityMenu();
+                    cityMenu.ShowMenu();
+                    break;
+                case 4:
+                    var dtoClientMenu = new ClientMenu();
+                    dtoClientMenu.ShowMenu();
+                    break;
+                case 5:
+                    var employeeMenu = new EmployeeMenu();
+                    employeeMenu.ShowMenu();
+                    break;
+                case 6:
+                    var providerMenu = new ProviderMenu();
+                    providerMenu.ShowMenu();
+                    break;
+                case 7:
+                    var promotionalPlanMenu = new PromotionalPlanMenu();
+                    promotionalPlanMenu.ShowMenu();
+                    break;
+                case 8:
+                    var epsMenu = new EpsMenu();
+                    epsMenu.ShowMenu();
+                    break;
+                case 9:
+                    var arlMenu = new ArlMenu();
+                    arlMenu.ShowMenu();
+                    break;
+                case 10:
+                    var companyMenu = new CompanyMenu();
+                    companyMenu.ShowMenu();
+                    break;
+                case 11:
+                    var productMenu = new ProductMenu();
+                    productMenu.ShowMenu();
+                    break;
+                case 12:
+                    var promoplanMenu = new PromotionalPlanProductMenu();
+                    promoplanMenu.ShowMenu();
+                    break;
+                case 13:
+                    var doctypeMenu = new DocTypeMenu();
+                    doctypeMenu.ShowMenu();
+                    break;
+                case 14:
+                    var tipotercerosMenu = new ThirdPartyTypeMenu();
+                    tipotercerosMenu.ShowMenu();
+                    break;
+                case 15:
+                    var tipotelefonosMenu = new PhoneTypeMenu();
+                    tipotelefonosMenu.ShowMenu();
+                    break;
+                case 16:
+                    var purchaseMenu = new PurchaseMenu();
+                    purchaseMenu.ShowMenu();
+                    break;
+                case 17:
+                    var saleMenu = new SaleMenu();
+                    saleMenu.ShowMenu();
+                    break;
+                case 18:
+                    var cashmovetypeMenu = new CashMovementTypeMenu();
+                    cashmovetypeMenu.ShowMenu();
+                    break;
+                case 19:
+                    var sescajaMenu = new CashSessionMenu();
+                    sescajaMenu.ShowMenu();
+                    break;
+                case 20:
+                    var movcajaMenu = new CashMovementMenu();
+                    movcajaMenu.ShowMenu();
+                    break;
             }
         }
     }

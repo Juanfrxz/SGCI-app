@@ -6,159 +6,117 @@ using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class CountryMenu
+    public class CountryMenu : BaseMenu
     {
         private readonly CountryService _service;
 
-        public CountryMenu()
+        public CountryMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new CountryService(factory.CrearCountryRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE PAÍSES ===");
+                ShowHeader("GESTIÓN DE PAÍSES");
                 Console.WriteLine("1. Crear País");
                 Console.WriteLine("2. Listar Países");
                 Console.WriteLine("3. Actualizar País");
                 Console.WriteLine("4. Eliminar País");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1":
+                    case 1:
                         CrearPais();
                         break;
-                    case "2":
+                    case 2:
                         ListarPaises();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarPais();
                         break;
-                    case "4":
+                    case 4:
                         EliminarPais();
                         break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearPais()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR NUEVO PAÍS ===");
-            
-            Console.Write("Nombre del país: ");
-            string? nombre = Console.ReadLine();
-
+            ShowHeader("CREAR NUEVO PAÍS");
+            string nombre = GetValidatedInput("Nombre del país: ");
             var pais = new Country { Nombre = nombre };
-            
+
             try
             {
                 _service.CrearCountry(pais);
-                Console.WriteLine("País creado exitosamente.");
+                ShowSuccessMessage("País creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al crear el país: {ex.Message}");
+                ShowErrorMessage($"Error al crear el país: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void ListarPaises()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE PAÍSES ===");
-            
+            ShowHeader("LISTA DE PAÍSES");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de países completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al listar los países: {ex.Message}");
+                ShowErrorMessage($"Error al listar los países: {ex.Message}");
             }
-            
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarPais()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR PAÍS ===");
-            
-            Console.Write("ID del país a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int paisId))
-            {
-                Console.WriteLine("ID de país inválido.");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.Write("Nuevo nombre: ");
-            string? nuevoNombre = Console.ReadLine();
+            ShowHeader("ACTUALIZAR PAÍS");
+            int paisId = GetValidatedIntInput("ID del país a actualizar: ");
+            string nuevoNombre = GetValidatedInput("Nuevo nombre: ");
 
             var pais = new Country { Id = paisId, Nombre = nuevoNombre };
-            
+
             try
             {
                 _service.ActualizarCountry(pais);
-                Console.WriteLine("País actualizado exitosamente.");
+                ShowSuccessMessage("País actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al actualizar el país: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar el país: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
 
         private void EliminarPais()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR PAÍS ===");
-            
-            Console.Write("ID del país a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int paisId))
-            {
-                Console.WriteLine("ID de país inválido.");
-                Console.ReadKey();
-                return;
-            }
-            
+            ShowHeader("ELIMINAR PAÍS");
+            int paisId = GetValidatedIntInput("ID del país a eliminar: ");
+
             try
             {
                 _service.EliminarCountry(paisId);
-                Console.WriteLine("País eliminado exitosamente.");
+                ShowSuccessMessage("País eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar el país: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar el país: {ex.Message}");
             }
-            
-            Console.ReadKey();
         }
     }
-} 
+}

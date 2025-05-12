@@ -1,164 +1,123 @@
 using System;
-using SGCI_app.application.services;
 using SGCI_app.domain.Entities;
 using SGCI_app.domain.Factory;
 using SGCI_app.infrastructure.postgres;
+using SGCI_app.application.services;
 
 namespace SGCI_app.application.UI
 {
-    public class DocTypeMenu
+    public class DocTypeMenu : BaseMenu
     {
         private readonly DocTypeService _service;
 
-        public DocTypeMenu()
+        public DocTypeMenu() : base(showIntro: false)
         {
             string connStr = "Host=localhost;database=sgci;Port=5432;Username=postgres;Password=1219;Pooling=true";
             var factory = new ConexDBFactory(connStr);
             _service = new DocTypeService(factory.CrearDocTypeRepository());
         }
 
-        public void ShowMenu()
+        public override void ShowMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("=== GESTIÓN DE TIPOS DE DOCUMENTO ===");
-                Console.WriteLine("1. Crear Tipo Documento");
-                Console.WriteLine("2. Listar Tipos Documento");
-                Console.WriteLine("3. Actualizar Tipo Documento");
-                Console.WriteLine("4. Eliminar Tipo Documento");
+                ShowHeader("GESTIÓN DE TIPOS DE DOCUMENTO");
+                Console.WriteLine("1. Crear Tipo de Documento");
+                Console.WriteLine("2. Listar Tipos de Documento");
+                Console.WriteLine("3. Actualizar Tipo de Documento");
+                Console.WriteLine("4. Eliminar Tipo de Documento");
                 Console.WriteLine("0. Volver al menú principal");
-                Console.Write("\nSeleccione una opción: ");
+                DrawSeparator();
 
-                string? input = Console.ReadLine();
-                if (string.IsNullOrEmpty(input))
+                int option = GetValidatedIntInput("Seleccione una opción: ", 0, 4);
+                switch (option)
                 {
-                    Console.WriteLine("Por favor, ingrese una opción válida.");
-                    Console.ReadKey();
-                    continue;
-                }
-
-                switch (input)
-                {
-                    case "1":
+                    case 1:
                         CrearTipoDocumento();
                         break;
-                    case "2":
+                    case 2:
                         ListarTiposDocumento();
                         break;
-                    case "3":
+                    case 3:
                         ActualizarTipoDocumento();
                         break;
-                    case "4":
+                    case 4:
                         EliminarTipoDocumento();
                         break;
-                    case "0":
+                    case 0:
                         return;
-                    default:
-                        Console.WriteLine("Opción no válida. Presione cualquier tecla para continuar...");
-                        Console.ReadKey();
-                        break;
                 }
             }
         }
 
         private void CrearTipoDocumento()
         {
-            Console.Clear();
-            Console.WriteLine("=== CREAR TIPO DE DOCUMENTO ===");
+            ShowHeader("CREAR NUEVO TIPO DE DOCUMENTO");
+            string descripcion = GetValidatedInput("Descripción: ");
 
-            Console.Write("Descripción: ");
-            string? descripcion = Console.ReadLine();
             var entity = new DocType { Descripcion = descripcion };
 
             try
             {
                 _service.CrearDocType(entity);
-                Console.WriteLine("\nTipo de documento creado exitosamente.");
+                ShowSuccessMessage("Tipo de documento creado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al crear tipo de documento: {ex.Message}");
+                ShowErrorMessage($"Error al crear tipo de documento: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ListarTiposDocumento()
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTA DE TIPOS DE DOCUMENTO ===\n");
-
+            ShowHeader("LISTA DE TIPOS DE DOCUMENTO");
             try
             {
                 _service.MostrarTodos();
+                ShowInfoMessage("Listado de tipos de documento completado.");
+                Console.WriteLine();
+                Console.Write("Presione cualquier tecla para continuar...");
+                Console.ReadKey(true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al listar tipos de documento: {ex.Message}");
+                ShowErrorMessage($"Error al listar tipos de documento: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void ActualizarTipoDocumento()
         {
-            Console.Clear();
-            Console.WriteLine("=== ACTUALIZAR TIPO DE DOCUMENTO ===");
+            ShowHeader("ACTUALIZAR TIPO DE DOCUMENTO");
+            int id = GetValidatedIntInput("ID del tipo de documento a actualizar: ");
+            string descripcion = GetValidatedInput("Nueva descripción (dejar en blanco para mantener la actual): ", allowEmpty: true);
 
-            Console.Write("ID del tipo de documento a actualizar: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID inválido.");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.Write("Nueva descripción (dejar en blanco para mantener la actual): ");
-            string? descripcion = Console.ReadLine();
             var entity = new DocType { Id = id, Descripcion = string.IsNullOrWhiteSpace(descripcion) ? null : descripcion };
 
             try
             {
                 _service.ActualizarDocType(id, entity);
-                Console.WriteLine("\nTipo de documento actualizado exitosamente.");
+                ShowSuccessMessage("Tipo de documento actualizado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al actualizar tipo de documento: {ex.Message}");
+                ShowErrorMessage($"Error al actualizar tipo de documento: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
 
         private void EliminarTipoDocumento()
         {
-            Console.Clear();
-            Console.WriteLine("=== ELIMINAR TIPO DE DOCUMENTO ===");
-
-            Console.Write("ID del tipo de documento a eliminar: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID inválido.");
-                Console.ReadKey();
-                return;
-            }
+            ShowHeader("ELIMINAR TIPO DE DOCUMENTO");
+            int id = GetValidatedIntInput("ID del tipo de documento a eliminar: ");
 
             try
             {
                 _service.EliminarDocType(id);
-                Console.WriteLine("\nTipo de documento eliminado exitosamente.");
+                ShowSuccessMessage("Tipo de documento eliminado exitosamente.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"\nError al eliminar tipo de documento: {ex.Message}");
+                ShowErrorMessage($"Error al eliminar tipo de documento: {ex.Message}");
             }
-
-            Console.WriteLine("\nPresione cualquier tecla para continuar...");
-            Console.ReadKey();
         }
     }
 }

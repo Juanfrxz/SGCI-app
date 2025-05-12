@@ -64,17 +64,17 @@ public class ImpPurchaseRepository : IGenericRepository<Purchase>, IPurchaseRepo
         try
         {
             var connection = _conexion.ObtenerConexion();
-            
+
             // Primero obtener los IDs de proveedor y empleado
-            string queryProveedor = "SELECT id FROM proveedor WHERE tercero_id = @tercero_id";
-            string queryEmpleado = "SELECT id FROM empleado WHERE tercero_id = @tercero_id";
-            
+            string queryProveedor = "SELECT id FROM proveedor WHERE id = @id";
+            string queryEmpleado = "SELECT id FROM empleado WHERE id = @id";
+
             int proveedorId = 0;
             int empleadoId = 0;
 
             using (var cmd = new NpgsqlCommand(queryProveedor, connection))
             {
-                cmd.Parameters.AddWithValue("@tercero_id", entity.TerceroProveedor_Id ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@id", Convert.ToInt32(entity.TerceroProveedor_Id));
                 var result = cmd.ExecuteScalar();
                 if (result == null || result == DBNull.Value)
                 {
@@ -85,7 +85,7 @@ public class ImpPurchaseRepository : IGenericRepository<Purchase>, IPurchaseRepo
 
             using (var cmd = new NpgsqlCommand(queryEmpleado, connection))
             {
-                cmd.Parameters.AddWithValue("@tercero_id", entity.TerceroEmpleado_Id ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@id", Convert.ToInt32(entity.TerceroEmpleado_Id));
                 var result = cmd.ExecuteScalar();
                 if (result == null || result == DBNull.Value)
                 {
@@ -96,13 +96,13 @@ public class ImpPurchaseRepository : IGenericRepository<Purchase>, IPurchaseRepo
 
             // Ahora insertar la compra
             string query = "INSERT INTO compras (proveedor_id, fecha, empleado_id, doc_compra) VALUES (@proveedor_id, @fecha, @empleado_id, @doc_compra)";
-            
+
             using var cmdInsert = new NpgsqlCommand(query, connection);
             cmdInsert.Parameters.AddWithValue("@proveedor_id", proveedorId);
             cmdInsert.Parameters.AddWithValue("@fecha", entity.Fecha ?? (object)DBNull.Value);
             cmdInsert.Parameters.AddWithValue("@empleado_id", empleadoId);
             cmdInsert.Parameters.AddWithValue("@doc_compra", entity.DocCompra ?? (object)DBNull.Value);
-            
+
             cmdInsert.ExecuteNonQuery();
         }
         catch (PostgresException ex)
